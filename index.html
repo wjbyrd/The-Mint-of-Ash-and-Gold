@@ -180,7 +180,7 @@ body {
     letter-spacing: 0.5px;
     text-align: center;
 }
-   
+	
 /* =========================================
    2. CORE GAME CONTAINER (#gameBox) — SAFE TO STYLE
 ========================================= */
@@ -230,21 +230,21 @@ body {
     pointer-events: none;
 }
 
-/* Tier 1 — Registrar of False Measures */
+/* Tier 1 — Lord of Liquidity */
 .boss10 .boss-icon{
     filter:
         drop-shadow(0 0 6px rgba(214,177,92,0.85))
         drop-shadow(0 0 12px rgba(65,95,78,0.55));
 }
 
-/* Tier 2 — Warden of Labor Flows */
+/* Tier 2 — Keeper of the Steady State */
 .boss20 .boss-icon{
     filter:
         drop-shadow(0 0 8px rgba(196,106,58,0.9))
         drop-shadow(0 0 16px rgba(99,35,24,0.65));
 }
 
-/* Tier 3 — Comptroller of Equilibrium */
+/* Tier 3 — Sovereign of Shocks */
 .boss30 .boss-icon{
     filter:
         drop-shadow(0 0 10px rgba(240,199,94,1))
@@ -353,7 +353,7 @@ h2 {
     text-shadow: 0 2px 5px rgba(0,0,0,0.8);
 }
 
-/* Optional hint display (calculation or guidance) */
+/* Optional hint display calculation or guidance */
 .hint-box {
     font-size: 13px;
     color: #d6b15c;
@@ -363,7 +363,7 @@ h2 {
     text-shadow: 0 0 6px rgba(214,177,92,0.25);
 }
     
-/* Temporary feedback text (auto fades out) */
+/* Temporary feedback text auto fades out */
 .fade-out-text {
     animation: fadeOut 5s forwards;
     font-weight: bold;
@@ -373,7 +373,7 @@ h2 {
         0 2px 5px rgba(0,0,0,0.85);
 }
 
-/* Add styling to Auditor text */
+/* Add styling to banker text */
 #message {
     margin-top: 10px;
     font-style: italic;
@@ -386,8 +386,8 @@ h2 {
         0 2px 5px rgba(0,0,0,0.85);
 }
 
-/* National Engine override */
-.national-engine #message {
+/* Mint of Ash and Gold override */
+.mint #message {
     color: #d6b15c;
     font-size: 17px;
     font-style: italic;
@@ -463,32 +463,33 @@ button:active {
     margin: 0;
 
     background: linear-gradient(180deg,
-        rgba(55,70,58,0.96),
-        rgba(12,18,18,0.98));
+        rgba(50,76,58,0.98),
+        rgba(12,24,20,0.98));
 
     color: #f3ead2;
     border: 1px solid rgba(214,177,92,0.34);
 
     box-shadow:
         0 0 10px rgba(214,177,92,0.16),
+        0 0 18px rgba(65,95,78,0.16),
         inset 0 0 14px rgba(0,0,0,0.7);
 }
 
-/* Answer hover — a little brighter than base */
+/* Answer hover — green vault glow */
 .answers button:hover {
     background: linear-gradient(180deg,
-        rgba(73,92,72,0.98),
-        rgba(31,40,34,0.98));
+        rgba(68,105,76,0.98),
+        rgba(24,46,34,0.98));
 
     border-color: rgba(240,199,94,0.68);
 
     box-shadow:
         0 0 18px rgba(214,177,92,0.38),
-        0 0 32px rgba(65,95,78,0.22),
+        0 0 34px rgba(65,120,82,0.35),
         inset 0 0 14px rgba(0,0,0,0.68);
 }
 
-/* Utility button (fullscreen toggle) — safe to restyle or move */
+/* Utility button fullscreen toggle */
 .fullscreenBtn {
     position: absolute;
     top: 12px;
@@ -673,7 +674,7 @@ button:active {
         inset 0 0 10px rgba(0,0,0,0.7);
 }
 
-/* Boss room highlights (10, 20, 30) — visual only */
+/* Boss room highlights 10, 20, 30 — visual only */
 .maze-box:nth-child(10) {
     text-shadow:
         0 0 8px #d6b15c,
@@ -693,7 +694,7 @@ button:active {
         0 0 34px rgba(214,177,92,0.42);
 }
 
-/* Streak styling — National Engine */
+/* Streak styling — Mint of Ash and Gold */
 .streak {
     display:inline-flex;
     align-items:center;
@@ -761,7 +762,7 @@ button:active {
         drop-shadow(0 0 26px rgba(127,29,29,0.42));
 }
 
-/* Persistent artifact collection display (top panel) */
+/* Persistent artifact collection display top panel */
 #artifactVault {
     margin-top: -6px;
     width: 220px;
@@ -799,7 +800,7 @@ button:active {
     flex-wrap:wrap;
 }
 
-/* Individual artifact slot (default = locked state) */    
+/* Individual artifact slot default locked state */    
 .artifactSlot {
     display: flex;
     flex-direction: column;
@@ -813,7 +814,7 @@ button:active {
     transition: all .4s ease;
 }
 
-/* Locked artifact image (dimmed effect) */    
+/* Locked artifact image dimmed effect */    
 .artifactSlot img {
     width: 45px;
     margin-bottom:4px;
@@ -879,26 +880,26 @@ button:active {
 }
 
 /* Boss-specific glow effects */
-.registrarGlow {
+.liquidityGlow {
     filter:
-        drop-shadow(0 0 12px rgba(214,177,92,0.82))
-        drop-shadow(0 0 24px rgba(65,95,78,0.50))
-        drop-shadow(0 0 34px rgba(0,0,0,0.75));
+        drop-shadow(0 0 12px rgba(214,177,92,0.84))
+        drop-shadow(0 0 24px rgba(65,95,78,0.58))
+        drop-shadow(0 0 34px rgba(0,0,0,0.78));
 }
 
-.wardenGlow {
+.steadyStateGlow {
     filter:
-        drop-shadow(0 0 14px rgba(196,106,58,0.88))
-        drop-shadow(0 0 28px rgba(127,29,29,0.58))
-        drop-shadow(0 0 38px rgba(0,0,0,0.78));
+        drop-shadow(0 0 14px rgba(196,106,58,0.86))
+        drop-shadow(0 0 28px rgba(92,64,36,0.62))
+        drop-shadow(0 0 38px rgba(0,0,0,0.80));
 }
 
-.comptrollerGlow {
+.shockSovereignGlow {
     filter:
         drop-shadow(0 0 16px rgba(240,199,94,0.96))
         drop-shadow(0 0 34px rgba(127,29,29,0.74))
         drop-shadow(0 0 46px rgba(214,177,92,0.34))
-        drop-shadow(0 0 52px rgba(0,0,0,0.82));
+        drop-shadow(0 0 52px rgba(0,0,0,0.84));
 }
 
 /* Ambient torch effect — decorative, shown during gameplay */
@@ -918,7 +919,7 @@ button:active {
     display:none;
 }
 
-/* Torch positioning (left/right sides of screen) */
+/* Torch positioning left/right sides of screen */
 .left-torch {
     left: 18px;
 }
@@ -960,7 +961,7 @@ button:active {
   box-sizing: border-box;
 }
 
-/* Transition overlay — appears between rooms (controlled by JS) */
+/* Transition overlay — appears between rooms controlled by JS */
 #hallwayTransition {
   position: fixed;
   top: 0;
@@ -995,7 +996,7 @@ button:active {
   animation: hallwayZoom 3.2s ease-out forwards;
 }
 
-/* Activates transition visibility (DO NOT REMOVE) */    
+/* Activates transition visibility DO NOT REMOVE */    
 #hallwayTransition.active {
   opacity: 1;
 }
@@ -1030,7 +1031,7 @@ button:active {
    9. ANIMATION SYSTEM — SAFE TO CUSTOMIZE (WITH CARE)
 ========================================= */
 
-/* Ambient lighting effect (environmental immersion) */    
+/* Ambient lighting effect environmental immersion */    
 @keyframes torchFlicker {
   0%, 100% {
     filter: brightness(1);
@@ -1046,7 +1047,7 @@ button:active {
   }
 }
 
-/* Damage feedback (quick impact effect) */    
+/* Damage feedback quick impact effect */    
 @keyframes hitshake {
   0% {
     transform: translateX(0);
@@ -1065,7 +1066,7 @@ button:active {
   }
 }
 
-/* Boss-specific hit feedback (stronger shake) */    
+/* Boss-specific hit feedback stronger shake */    
 @keyframes bossShake {
   10%, 90% {
     transform: translate3d(-1px, 0, 0);
@@ -1081,7 +1082,7 @@ button:active {
   }
 }
 
-/* Current room highlight animation (maze tracker) */   
+/* Current room highlight animation maze tracker */   
 @keyframes activePulse {
   0% {
     transform: scale(1.06);
@@ -1116,7 +1117,7 @@ button:active {
   }
 }
 
-/* Victory text animation (end screen emphasis) */    
+/* Victory text animation end screen emphasis */    
 @keyframes victoryGlow {
   0%, 100% {
     transform: scale(1);
@@ -1135,7 +1136,7 @@ button:active {
   }
 }
 
-/* Idle boss movement (subtle hovering effect) */    
+/* Idle boss movement subtle hovering effect */    
 @keyframes bossFloat {
   0%, 100% {
     transform: translateY(0);
@@ -1157,7 +1158,7 @@ button:active {
   }
 }
 
-/* Wizard idle animation (subtle movement) */    
+/* Wizard idle animation subtle movement */    
 @keyframes wizardFloat {
   0%,100% {
     transform: translateY(0);
@@ -1229,7 +1230,7 @@ button:active {
     margin:0 auto 10px auto;
 }
    
-/* TITLE ABOVE MAZE */
+/* Title above maze */
 .top-title{
     font-size:22px;
     font-weight:bold;
@@ -1253,8 +1254,7 @@ button:active {
     padding:10px 14px;
 }
 
-/* Main Game Row */
-/* Main horizontal layout: wizard + game area */
+/* Main horizontal layout: banker + game area */
 .main-panel{
     display:flex;
     gap:20px;
@@ -1263,7 +1263,6 @@ button:active {
     align-items: stretch;
 }
    
-/* Game Shell Wrapper*/
 /* Core game container — controls overall layout and spacing */
 #gameShell{
     display:flex;
@@ -1290,8 +1289,7 @@ button:active {
        inset 0 0 42px rgba(0,0,0,0.74);
 }
    
-/* Wizard Box */
-/* Auditor display panel — fixed width, do not remove flex settings */
+/* Banker display panel — fixed width, do not remove flex settings */
 #wizardBox{
     width:160px;
     min-width:160px;
@@ -1319,7 +1317,7 @@ button:active {
         0 0 18px rgba(214,177,92,0.12);
 }
 
-/* Wizard Name */
+/* Banker name */
 #wizardName {
     font-size: 12px;
     letter-spacing: 1px;
@@ -1339,8 +1337,7 @@ button:active {
         0 2px 5px rgba(0,0,0,0.85);
 }
 
-/* Wizard Image */
-/* Auditor visual + floating animation */
+/* Banker visual + floating animation */
 #wizardImage{
     width:100%;
     max-width:180px;
@@ -1357,7 +1354,7 @@ button:active {
    11. BOSS MODE (UI STATE OVERRIDES) — DO NOT MODIFY STRUCTURE
 ========================================= */
 
-/* Center layout when wizard is removed */
+/* Center layout when banker is removed */
 .boss-mode #wizardBox{
     display:none;
 }
@@ -1384,7 +1381,7 @@ button:active {
     margin:10px auto;
 }
    
-/* Center layout when wizard is removed */
+/* Center game shell during boss encounters */
 .boss-mode #gameShell{
     justify-content:center;
 
@@ -1758,6 +1755,32 @@ TIP:
     border-radius: 10px;
   }
 }
+
+/* =========================================
+   13. SOUND ON/OFF
+========================================= */
+.sound-toggle{
+  position:fixed;
+  right:28px;
+  bottom:24px;
+  z-index:999;
+  padding:10px 13px;
+  border-radius:999px;
+  border:1px solid rgba(255,255,255,.22);
+  background:rgba(0,0,0,.46);
+  color:rgba(255,255,255,.72);
+  cursor:pointer;
+  font-size:11px;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+  box-shadow:0 0 18px rgba(0,0,0,.45);
+}
+
+.sound-toggle:hover{
+  color:#fff;
+  border-color:rgba(255,255,255,.42);
+  background:rgba(255,255,255,.08);
+}
  
 </style>
 </head>
@@ -1814,7 +1837,7 @@ Edit appearance freely.
 Respect structure strictly.
 
 ========================================= -->
-<body class="national-engine">
+<body class="mint-ash-gold">
 <!-- Screen reader announcements (accessibility — do not remove) -->    
   <div id="srAnnouncements"
      aria-live="assertive"
@@ -1830,15 +1853,16 @@ Respect structure strictly.
 <!-- Start screen / player entry (safe to redesign completely) -->
 <div id="startScreen">
   <div class="start-content">
-    <h1 class="title">THE NATIONAL ENGINE</h1>
-    <h2 class="subtitle">Measure. Trace. Balance.</h2>
+    <h1 class="title">THE MINT OF ASH AND GOLD</h1>
+    <h2 class="subtitle">Count. Grow. Stabilize.</h2>
     <input id="emailInput" type="email" placeholder="Enter your school email" class="name-input">
-    <button class="start-btn" onclick="startGame()">ENTER THE ENGINE</button>
+    <button class="start-btn" onclick="startGame()">ENTER THE MINT</button>
   </div>
 </div>
 
 <div class="dungeon-container">
     <button class="fullscreenBtn" onclick="goFullscreen()">FULLSCREEN</button>
+	<button id="soundToggle" class="sound-toggle" onclick="toggleGameSound()" aria-label="Toggle sound">Sound On</button>
 
 <!-- =========================================
 TOP PANEL (HUD)
@@ -1865,7 +1889,7 @@ or simplify this section.
 
     <!-- Top panel: progress track + artifact vault -->
     <div class="top-panel">
-       <div class="top-title">The National Engine</div>
+       <div class="top-title">The Mint of Ash and Gold</div>
         <div id="mazeTrackContainer">
             <div id="mazeTrack"></div>
         </div>
@@ -1970,7 +1994,39 @@ const hallwayImages = [
     "hallway2.png",
     "hallway3.png"
 ];
-  
+
+let soundEnabled = true;
+
+function updateSoundToggle(){
+  const button = document.getElementById("soundToggle");
+  if(!button) return;
+  button.innerText = soundEnabled ? "Sound On" : "Sound Off";
+}
+
+function setAllGameAudioMuted(isMuted){
+  [bgMusic, bossMusic, finalBossMusic, sfxMilestone, sfxVictory, sfxBossHit, sfxCorrect, sfxWrong]
+    .filter(Boolean)
+    .forEach(audio => {
+      audio.muted = isMuted;
+    });
+}
+
+function toggleGameSound(){
+  soundEnabled = !soundEnabled;
+  localStorage.setItem("gauntletSoundEnabled", soundEnabled ? "true" : "false");
+  setAllGameAudioMuted(!soundEnabled);
+  updateSoundToggle();
+}
+
+function restoreSoundSetting(){
+  const saved = localStorage.getItem("gauntletSoundEnabled");
+  soundEnabled = saved !== "false";
+  setAllGameAudioMuted(!soundEnabled);
+  updateSoundToggle();
+}
+
+restoreSoundSetting();
+	 
 function goFullscreen(){
 let el = document.documentElement;
 
@@ -2094,35 +2150,7 @@ function generatePseudonymFromEmail(email) {
 
     return `${adj}${noun}${number}`;
 }
-
-function generatePseudonymFromEmail(email) {
-    const adjectives = [
-        "Iron", "Crimson", "Silent", "Golden", "Shadow", "Blazing",
-        "Stone", "Storm", "Obsidian", "Frost", "Ember", "Steel"
-    ];
-
-    const nouns = [
-        "Anvil", "Hammer", "Falcon", "Forge", "Sentinel", "Warden",
-        "Cipher", "Titan", "Raven", "Vanguard", "Crown", "Engine"
-    ];
-
-    let hash = 0;
-    const cleanEmail = email.trim().toLowerCase();
-
-    for (let i = 0; i < cleanEmail.length; i++) {
-        hash = ((hash << 5) - hash) + cleanEmail.charCodeAt(i);
-        hash |= 0;
-    }
-
-    const positiveHash = Math.abs(hash);
-
-    const adj = adjectives[positiveHash % adjectives.length];
-    const noun = nouns[Math.floor(positiveHash / adjectives.length) % nouns.length];
-    const number = 1000 + (positiveHash % 9000);
-
-    return `${adj}${noun}${number}`;
-}
-	 
+ 
 // =============================================
 // ADAPTIVE ENGINE — DO NOT TOUCH
 // =============================================
@@ -2199,46 +2227,97 @@ function getTypeBucket(tag, type){
 function inferObjective(question){
     if(!question) return "general";
     if(question.objective) return question.objective;
-    const q = (question.q || "").toLowerCase();
-    const tag = question.tag || "general";
-    const type = question.type || "default";
 
-    if(tag === "production"){
-        if(q.includes("isoquant")) return "isoquant_reading";
-        if(q.includes("technical substitution") || q.includes("mrts")) return "mrts";
-        if(q.includes("marginal product")) return "marginal_product";
-        if(q.includes("substitut")) return "input_substitution";
-        if(q.includes("returns to scale")) return "returns_to_scale";
-        if(q.includes("technology")) return "technology_productivity";
+    const q = (question.q || "").toLowerCase();
+    const tag = (question.tag || "general").toLowerCase();
+    const type = (question.type || "default").toLowerCase();
+
+    if(tag === "money" || tag === "money_creation" || tag === "banking"){
+        if(q.includes("money multiplier")) return "money_multiplier";
+        if(q.includes("required reserve") || q.includes("reserve requirement")) return "reserve_requirement";
+        if(q.includes("excess reserve")) return "excess_reserves";
+        if(q.includes("open market purchase") || q.includes("buys bonds")) return "open_market_purchase";
+        if(q.includes("open market sale") || q.includes("sells bonds")) return "open_market_sale";
+        if(q.includes("discount rate")) return "discount_rate";
+        if(q.includes("federal funds")) return "federal_funds_rate";
+        if(q.includes("money supply")) return "money_supply";
+        if(q.includes("bank")) return "banking_system";
+        if(q.includes("deposit")) return "deposit_creation";
+        if(q.includes("loan")) return "loan_creation";
     }
-    if(tag === "costs"){
-        if(q.includes("fixed cost")) return "fixed_vs_variable";
-        if(q.includes("average total cost") || q.includes("atc")) return "atc_relationships";
-        if(q.includes("average variable cost") || q.includes("avc")) return "shutdown_components";
-        if(q.includes("marginal cost") || q.includes("mc")) return "mc_relationships";
-        if(q.includes("wage") || q.includes("input prices")) return "cost_curve_shifts";
+
+    if(tag === "inflation" || tag === "prices"){
+        if(q.includes("quantity theory") || q.includes("mv = py") || q.includes("mv=py")) return "quantity_theory";
+        if(q.includes("velocity")) return "velocity";
+        if(q.includes("money neutrality") || q.includes("monetary neutrality")) return "monetary_neutrality";
+        if(q.includes("classical dichotomy")) return "classical_dichotomy";
+        if(q.includes("fisher effect")) return "fisher_effect";
+        if(q.includes("nominal interest") || q.includes("real interest")) return "nominal_real_interest";
+        if(q.includes("inflation tax")) return "inflation_tax";
+        if(q.includes("shoeleather")) return "shoeleather_costs";
+        if(q.includes("menu costs")) return "menu_costs";
+        if(q.includes("purchasing power")) return "purchasing_power";
+        if(q.includes("price level")) return "price_level";
+        if(q.includes("inflation")) return "inflation";
     }
-    if(tag === "profit"){
-        if(q.includes("shut down")) return "shutdown_rule";
-        if(q.includes("profit maxim")) return "mr_mc_rule";
-        if(q.includes("zero economic profit")) return "normal_profit";
-        if(q.includes("loss")) return "profit_vs_loss";
+
+    if(tag === "growth" || tag === "solow" || tag === "economic_growth"){
+        if(q.includes("solow")) return "solow_model";
+        if(q.includes("steady state")) return "steady_state";
+        if(q.includes("golden rule")) return "golden_rule";
+        if(q.includes("capital accumulation")) return "capital_accumulation";
+        if(q.includes("depreciation")) return "depreciation";
+        if(q.includes("population growth")) return "population_growth";
+        if(q.includes("technological progress") || q.includes("technology")) return "technology_growth";
+        if(q.includes("productivity")) return "productivity";
+        if(q.includes("human capital")) return "human_capital";
+        if(q.includes("physical capital")) return "physical_capital";
+        if(q.includes("catch-up") || q.includes("catch up") || q.includes("convergence")) return "convergence";
+        if(q.includes("investment")) return "investment_growth";
+        if(q.includes("saving rate") || q.includes("savings rate")) return "saving_rate";
     }
-    if(tag === "competition"){
-        if(q.includes("price taker") || q.includes("perfectly elastic")) return "price_taking";
-        if(q.includes("supply curve")) return "firm_supply";
-        if(q.includes("market price")) return "firm_vs_market_price";
+
+    if(tag === "aggregate_demand" || tag === "ad" || tag === "demand"){
+        if(q.includes("aggregate demand") || q.includes(" ad ")) return "aggregate_demand";
+        if(q.includes("wealth effect")) return "wealth_effect";
+        if(q.includes("interest-rate effect") || q.includes("interest rate effect")) return "interest_rate_effect";
+        if(q.includes("exchange-rate effect") || q.includes("exchange rate effect")) return "exchange_rate_effect";
+        if(q.includes("consumption")) return "consumption_shift";
+        if(q.includes("investment")) return "investment_shift";
+        if(q.includes("government purchases") || q.includes("government spending")) return "government_spending_shift";
+        if(q.includes("net exports")) return "net_exports_shift";
+        if(q.includes("right")) return "ad_shift_right";
+        if(q.includes("left")) return "ad_shift_left";
     }
-    if(tag === "market"){
-        if(q.includes("entry")) return "entry_adjustment";
-        if(q.includes("exit")) return "exit_adjustment";
-        if(q.includes("long run equilibrium")) return "long_run_equilibrium";
-        if(q.includes("demand")) return "market_shift_sequences";
+
+    if(tag === "aggregate_supply" || tag === "as" || tag === "sras" || tag === "lras" || tag === "supply"){
+        if(q.includes("short-run aggregate supply") || q.includes("sras")) return "short_run_aggregate_supply";
+        if(q.includes("long-run aggregate supply") || q.includes("lras")) return "long_run_aggregate_supply";
+        if(q.includes("natural rate of output") || q.includes("potential output")) return "potential_output";
+        if(q.includes("sticky wages") || q.includes("sticky prices")) return "sticky_wage_price_theory";
+        if(q.includes("misperceptions")) return "misperceptions_theory";
+        if(q.includes("input prices")) return "input_price_shock";
+        if(q.includes("oil")) return "oil_shock";
+        if(q.includes("productivity")) return "productivity_shock";
+        if(q.includes("expected price level") || q.includes("expectations")) return "expectations_adjustment";
+        if(q.includes("right")) return "as_shift_right";
+        if(q.includes("left")) return "as_shift_left";
     }
-    if(tag === "efficiency"){
-        if(q.includes("allocative")) return "allocative_efficiency";
-        if(q.includes("productive")) return "productive_efficiency";
-        if(q.includes("full efficiency")) return "combined_efficiency";
+
+    if(tag === "stabilization" || tag === "adas" || tag === "ad-as" || tag === "shocks"){
+        if(q.includes("recessionary gap")) return "recessionary_gap";
+        if(q.includes("inflationary gap")) return "inflationary_gap";
+        if(q.includes("stagflation")) return "stagflation";
+        if(q.includes("demand shock")) return "demand_shock";
+        if(q.includes("supply shock")) return "supply_shock";
+        if(q.includes("self-correction") || q.includes("self correction")) return "self_correction";
+        if(q.includes("fiscal policy")) return "fiscal_policy";
+        if(q.includes("monetary policy")) return "monetary_policy";
+        if(q.includes("aggregate demand")) return "ad_as_adjustment";
+        if(q.includes("aggregate supply")) return "ad_as_adjustment";
+        if(q.includes("price level") && q.includes("output")) return "output_price_adjustment";
+        if(q.includes("long run")) return "long_run_adjustment";
+        if(q.includes("short run")) return "short_run_adjustment";
     }
 
     return `${tag}_${type}`;
@@ -2800,7 +2879,7 @@ function startGame() {
     let inputEmail = document.getElementById("emailInput").value.trim().toLowerCase();
 
     if (!inputEmail) {
-        alert("An email is required to enter the Dominion.");
+        alert("An email is required to enter the Mint.");
         return;
     }
 
@@ -2824,7 +2903,7 @@ function startGame() {
 
     sendGameData({
         runID: runID,
-        game: "The National Engine",
+        game: "The Mint of Ash and Gold",
         event: "start",
         user: username,
         email: studentEmail
@@ -2851,7 +2930,7 @@ function startGame() {
 
     localStorage.removeItem("gauntletRoom");
 
-    // National Engine artifact keys — keep these matched to your actual National Engine IDs.
+    // Mint of Ash and Gold artifact keys — keep these matched to your actual Mint of Ash and Gold IDs.
     localStorage.removeItem("vaultReserve");
     localStorage.removeItem("vaultCompass");
     localStorage.removeItem("vaultCrown");
@@ -2930,13 +3009,13 @@ document.getElementById("emailInput").addEventListener("keypress", function(even
 // This affects UI only, not game logic.
 // =============================================
 function getAreaName(r) {
-    if (r <= 9) return "The Web of Equilibrium";
-    if (r === 10) return "The Architect’s Domain";
-    if (r <= 19) return "The Monopoly Throne";
-    if (r === 20) return "The Seat of the Price Maker";
-    if (r <= 25) return "The Strategic Corridor";
-    if (r <= 29) return "The War of Responses";
-    return "The Throne of Dominion";
+    if (r <= 9) return "The Counting Floor";
+    if (r === 10) return "The Vault of Liquidity";
+    if (r <= 19) return "The Growth Foundry";
+    if (r === 20) return "The Steady-State Chamber";
+    if (r <= 25) return "The Hall of Shifting Demand";
+    if (r <= 29) return "The Corridor of Shocks";
+    return "The Stabilization Throne";
 }
 
 // =============================================
@@ -3843,9 +3922,9 @@ function updateMazeTrack() {
             box.innerText = "🟨";
         } else {
             // Boss icons for future rooms
-            if (i === 10){box.innerHTML = '<img src="registrar.png" class="boss-icon">';box.classList.add("boss10");}
-            else if (i === 20){box.innerHTML = '<img src="warden.png" class="boss-icon">';box.classList.add("boss20");}
-            else if (i === 30){box.innerHTML = '<img src="comptroller.png" class="boss-icon">';box.classList.add("boss30");}
+            if (i === 10){box.innerHTML = '<img src="lord.png" class="boss-icon">';box.classList.add("boss10");}
+            else if (i === 20){box.innerHTML = '<img src="keeper.png" class="boss-icon">';box.classList.add("boss20");}
+            else if (i === 30){box.innerHTML = '<img src="sovereign.png" class="boss-icon">';box.classList.add("boss30");}
             else box.innerText = "⬛";
         }
         
@@ -4069,9 +4148,9 @@ function loadQuestion() {
 		}
 
        // 3. Boss Identity UI (Logic moved ABOVE the return)
-        let bTitle = room === 10 ? "THE REGISTRAR OF FALSE MEASURES "
-               : room === 20 ? "THE WARDEN OF LABOR FLOWS"
-               : "THE COMPTROLLER OF EQUILIBRIUM";
+        let bTitle = room === 10 ? "THE LORD OF LIQUIDITY "
+               : room === 20 ? "THE KEEPER OF THE STEADY STATE"
+               : "THE SOVEREIGN OF SHOCKS";
 
        let bColor = room === 10 ? "#a78bfa"
                : room === 20 ? "#7c3aed"
@@ -4096,16 +4175,16 @@ function loadQuestion() {
 // =============================================
         
     if(room === 10){
-        bossImage = "registrar.png";
-        bossClass = "registrarGlow";
+        bossImage = "lord.png";
+        bossClass = "lordGlow";
     }
     else if(room === 20){
-        bossImage = "warden.png";
-        bossClass = "wardenGlow";
+        bossImage = "keeper.png";
+        bossClass = "keeperGlow";
     }
     else{
-        bossImage = "comptroller.png";
-        bossClass = "comptrollerGlow";
+        bossImage = "sovereign.png";
+        bossClass = "sovereignGlow";
     }
 
         questionElement.innerHTML = `
@@ -4302,7 +4381,7 @@ function answer(choice) {
     // =============================================
     sendGameData({
         runID: runID,
-		game: "The Dominion of Power",
+		game: "The Mint of Ash and Gold",
         event: "question",
         user: username || "anonymous",
 		email: studentEmail || "",
@@ -4404,7 +4483,7 @@ if(remediationState.active){
     adaptiveMode = "support";
 
     msgElement.innerHTML =
-        `<span class='fade-out-text'>Recovery confirmed. Return to the Dominion.</span>`;
+        `<span class='fade-out-text'>Recovery confirmed. Return to the Mint.</span>`;
 
     room = returnRoom;
     localStorage.setItem("gauntletRoom", room);
@@ -4436,7 +4515,7 @@ if(remediationState.active){
          // Boss defeated
          sendGameData({
             runID: runID,
-			game: "The Dominion of Power",
+			game: "The Mint of Ash and Gold",
             event: "boss_defeated",
             user: username,
 			email: studentEmail,
@@ -4556,7 +4635,7 @@ if (!remediationState.active && currentQuestion.tag && shouldTriggerDetour(curre
         const remediationMessage = remediationState.careless
             ? "You rushed the choice. Slow down and regain control."
             : remediationState.slowStruggle
-                ? "The Dominion resists. Rebuild the concept before advancing."
+                ? "The Mint resists. Rebuild the concept before advancing."
                 : "Your control fractured. Repair the weakness before moving on.";
 
         msgElement.innerHTML =
@@ -4688,7 +4767,7 @@ function showHallwayTransition(feedback){
     text.innerHTML = `
     <div style="font-size:22px;margin-bottom:15px;color:#4ade80;">${getWizardFeedback("correct")}</div>
     <div style="font-size:18px;opacity:.9;">${feedback}</div>
-    <div style="margin-top:25px;font-size:14px;opacity:.7;">You move deeper into the Engine...</div>
+    <div style="margin-top:25px;font-size:14px;opacity:.7;">You move deeper into the Mint...</div>
     `;
 
     overlay.classList.add("active");
@@ -4811,17 +4890,17 @@ function showKnowledgeRoom(bossRoom) {
 // Keep room numbers aligned with:
 // - actual boss encounters
 // =============================================    
-   if (bossRoom === 10) {
-    title = "THE REGISTRAR CONCEDES: EQUILIBRIUM HOLDS";
-    summary = "The system holds. You have traced the connections and recognized how equilibrium is maintained. Disturbance no longer confuses you—you anticipate the adjustment.";
+if (bossRoom === 10) {
+    title = "THE LORD OF LIQUIDITY YIELDS: THE VAULT OPENS";
+    summary = "The false shine fades from the currency. You have separated nominal illusion from real command, traced money through banks and reserves, and forced liquidity back into order.";
 } 
 else if (bossRoom === 20) {
-    title = "THE WARDEN SUBMITS: MARKET POWER BROKEN.";
-    summary = "Control is understood. Price is no longer taken—it is set. You recognize how power shapes outcomes, and how others respond within its shadow.";
+    title = "THE KEEPER OF THE STEADY STATE BOWS: THE LONG RUN TURNS";
+    summary = "The machinery slows, then locks into balance. You have traced saving, investment, depreciation, productivity, and the forces that govern long-run growth. The steady state no longer hides from you.";
 } 
 else if (bossRoom === 30) {
-    title = "THE COMPTROLLER FALLS: YOU ANTICIPATED EVERY MOVE.";
-    summary = "You have mastered response. Every move, every reaction, every outcome—anticipated. Strategy is no longer uncertain. The system no longer tests you. It answers to you.";
+    title = "THE SOVEREIGN OF SHOCKS FALLS: THE ECONOMY STABILIZES";
+    summary = "The curves stop shifting. Demand, supply, output, prices, and expectations return to the same final ledger. You have followed the shock, read the gap, and understood the path back toward the long run.";
 }
 
     // Update the UI
@@ -4832,7 +4911,7 @@ else if (bossRoom === 30) {
     
     // logic to ensure Room 30 triggers the end game, while 10 and 20 trigger the next level
     let nextAction = bossRoom === 30 ? "handleVictory()" : "room++; loadQuestion();";
-    let buttonLabel = bossRoom === 30 ? "FINALIZE THE DOMINION CONQUEST →" : `CONTINUE TO ROOM ${bossRoom + 1} →`;
+    let buttonLabel = bossRoom === 30 ? "FINALIZE THE MINT CONQUEST →" : `CONTINUE TO ROOM ${bossRoom + 1} →`;
 
 aContainer.innerHTML = `
 <button id="continueBtn" class="continue-btn">
@@ -4904,7 +4983,7 @@ document.getElementById("continueBtn").onclick = () => {
 // It is a lightweight integrity check.
 // =============================================
 function generateCode(name, acc, streak, total){
-    let str = `${name}|${acc}|${streak}|${total}|DOMINION66`;
+    let str = `${name}|${acc}|${streak}|${total}|MINT73`;
     let hash = 0;
 
     for(let i = 0; i < str.length; i++){
@@ -4960,7 +5039,7 @@ function handleVictory() {
 
 sendGameData({
     runID: runID,
-	game: "The Dominion of Power",
+	game: "The Mint of Ash and Gold",
     event: "complete",
     user: username,
 	email: studentEmail,
@@ -4996,13 +5075,13 @@ sendGameData({
 // =============================================
     let archivistLine = "";
     if(accuracy >= 90){
-        archivistLine = "You have mastered the Dominion. Few reach this level of clarity.";
+        archivistLine = "You have mastered the Mint. Few reach this level of clarity.";
     }
     else if(accuracy >= 75){
-        archivistLine = "You see much… but not all. The Dominion still holds power over you.";
+        archivistLine = "You see much… but not all. The Mint still holds power over you.";
     }
     else{
-        archivistLine = "You survived. Barely. The Dominion is not finished with you.";
+        archivistLine = "You survived. Barely. The Mint is not finished with you.";
     }
 
     let lineColor = "#5123db";
@@ -5192,9 +5271,9 @@ function sendGameData(data) {
     timestamp: new Date().toISOString(),
     runID: data.runID || localStorage.getItem("gauntletRunID") || "",
     token: data.token || "",
-    version: "LOC-foundry-engine-ms-telemetry-v1",
+    version: "MINT-foundry-engine-ms-telemetry-v1",
     userAgent: navigator.userAgent || "",
-    game: data.game || "The Dominion of Power",
+    game: data.game || "The Mint of Ash and Gold",
     event: data.event || "",
     user: data.user || username || "anonymous",
 	email: studentEmail || "",  
