@@ -380,7 +380,7 @@ h2 {
         0 2px 5px rgba(0,0,0,0.85);
 }
 
-/* Add styling to banker text */
+/* Add styling to Custodian text */
 #message {
     margin-top: 10px;
     font-style: italic;
@@ -1262,7 +1262,7 @@ button:active {
     padding:10px 14px;
 }
 
-/* Main horizontal layout: banker + game area */
+/* Main horizontal layout: Custodian + game area */
 .main-panel{
     display:flex;
     gap:20px;
@@ -1297,7 +1297,7 @@ button:active {
        inset 0 0 42px rgba(0,0,0,0.74);
 }
    
-/* Banker display panel — fixed width, do not remove flex settings */
+/* Custodian display panel — fixed width, do not remove flex settings */
 #wizardBox{
     width:160px;
     min-width:160px;
@@ -1325,7 +1325,7 @@ button:active {
         0 0 18px rgba(214,177,92,0.12);
 }
 
-/* Banker name */
+/* Custodian name */
 #wizardName {
     font-size: 12px;
     letter-spacing: 1px;
@@ -1345,7 +1345,7 @@ button:active {
         0 2px 5px rgba(0,0,0,0.85);
 }
 
-/* Banker visual + floating animation */
+/* Custodian visual + floating animation */
 #wizardImage{
     width:100%;
     max-width:180px;
@@ -1362,7 +1362,7 @@ button:active {
    11. BOSS MODE (UI STATE OVERRIDES) — DO NOT MODIFY STRUCTURE
 ========================================= */
 
-/* Center layout when banker is removed */
+/* Center layout when Custodian is removed */
 .boss-mode #wizardBox{
     display:none;
 }
@@ -1930,12 +1930,12 @@ or simplify this section.
     </div>
 
     <!-- MAIN PANEL -->
-    <!-- Main game area: Banker + question interface -->
+    <!-- Main game area: Custodian + question interface -->
     <div class="main-panel">
         <div id="gameShell">
             <div id="wizardBox">
-                <div id="wizardName">The Banker</div>
-                <img src="banker.png" id="wizardImage">
+                <div id="wizardName">The Custodian</div>
+                <img src="custodian.png" id="wizardImage">
             </div>
 
             <!-- GAME -->
@@ -3046,7 +3046,7 @@ const artifacts = {
 
 function getRecoveryLine(stage){
   if(stage === "repair"){
-    return "Recovery audit opened. The Banker is isolating the unstable account.";
+    return "Recovery audit opened. The Custodian is isolating the unstable account.";
   }
 
   if(stage === "bridge"){
@@ -5681,7 +5681,7 @@ function copyResults() {
         Best Streak: ${maxStreak}
         Total Questions: ${totalAttempts}
         Code: ${code}
-        Verified by The Banker`;
+        Verified by The Custodian`;
 
     navigator.clipboard.writeText(shareText).then(() => {
         const btn = document.getElementById("shareBtn");
