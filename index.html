@@ -3835,7 +3835,7 @@ function getDifficultyForMode(){
          : (room <= 19) ? "medium"
          : (room === 20) ? "mediumBoss"
          : (room <= 25) ? "hard"
-         : (room <= 29) ? "calculation"
+         : (room <= 29) ? "hard"
          : "finalBoss";
 }
 
@@ -4558,7 +4558,15 @@ function randomQuestion(poolName) {
 
     return question;
 }
-    
+
+function pickConceptQuestion(pool){
+    if(!pool._remaining || pool._remaining.length === 0){
+        pool._remaining = shuffle([...pool]);
+    }
+    return pool._remaining.pop();
+}
+
+	 
 // =============================================
 // MAZE TRACK VISUAL SYSTEM — SAFE TO EDIT (WITH RULES)
 // =============================================
