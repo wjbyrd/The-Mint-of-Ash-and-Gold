@@ -3787,7 +3787,7 @@ function endTimedModeRun(){
         <button class="continue-btn" onclick="returnToModeSelectFromRun()">Choose Another Mint Run</button>
     `;
 
-    document.getElementById("message").innerText = "The trial ends. The market remembers.";
+    document.getElementById("message").innerText = "The trial ends. The Mint remembers.";
 }
 
 
@@ -5542,7 +5542,7 @@ if (gameMode !== "legendary" && !remediationState.active && currentQuestion.tag 
         const remediationMessage = remediationState.careless
             ? "You rushed the choice. Slow down and regain control."
             : remediationState.slowStruggle
-                ? "The Gate doesn't budge. Rebuild the concept before advancing."
+                ? "The Engine doesn't budge. Rebuild the concept before advancing."
                 : "Your control fractured. Repair the weakness before moving on.";
 
         msgElement.innerHTML =
@@ -5945,7 +5945,7 @@ function handleLegendaryVictory(){
     if(accuracy >= 90){
         judgment = "Legendary run confirmed. You did not just recognize terms. You read the models, tracked the traps, and handled the pressure.";
     } else if(accuracy < 75){
-        judgment = "You survived Legendary Mode, but the Gate left dents. Completion counts. Mastery still needs another run.";
+        judgment = "You survived Legendary Mode, but the Engine left dents. Completion counts. Mastery still needs another run.";
     }
 
     document.getElementById("bossMessage").innerText = "";
