@@ -2266,6 +2266,47 @@ let timedModeTimerInterval = null;
 let timedHighestRoom = 1;
 let timedSetbacks = 0;
 
+// =============================================
+// HUB ACHIEVEMENT TRACKING
+// These keys are read by the Macro Test Prep hub.
+// Keep this small and boring. Boring means it works.
+// =============================================
+let resumedSavedRunThisSession = false;
+let bossMistakeCountThisRun = 0;
+let bossesDefeatedThisRun = 0;
+
+function addRealmStat(key, amount = 1){
+    const current = parseInt(localStorage.getItem(key) || "0", 10);
+    localStorage.setItem(key, String((Number.isFinite(current) ? current : 0) + amount));
+}
+
+function setRealmFlag(key){
+    localStorage.setItem(key, "true");
+}
+
+function updateRealmMaxStat(key, value){
+    const numericValue = Number(value || 0);
+    const current = parseInt(localStorage.getItem(key) || "0", 10);
+
+    if(Number.isFinite(numericValue) && numericValue > (Number.isFinite(current) ? current : 0)){
+        localStorage.setItem(key, String(numericValue));
+    }
+}
+
+function recordTimedTrialAchievementStats(accuracy, reachedRoom){
+    const safeAccuracy = Number.isFinite(Number(accuracy)) ? Number(accuracy) : 0;
+    const safeRoom = Number.isFinite(Number(reachedRoom)) ? Number(reachedRoom) : 0;
+
+    updateRealmMaxStat("mintTimedBestRoom", safeRoom);
+    updateRealmMaxStat("mintTimedBestAccuracy", safeAccuracy);
+    updateRealmMaxStat("macroHub_engine_timedBestRoom", safeRoom);
+    updateRealmMaxStat("macroHub_engine_timedBestAccuracy", safeAccuracy);
+
+    if(safeRoom >= 30 && safeAccuracy >= 80){
+        setRealmFlag("macroHub_engine_trial_by_clock_complete");
+    }
+}
+
 function modeAllowsSave(){
     return gameMode === "standard" || gameMode === "legendary";
 }
@@ -2317,6 +2358,10 @@ function saveGameState(){
         usedQuestions,
         questionHistory,
         savedAt: Date.now(),
+		achievementTracking: {
+   		bossMistakeCountThisRun,
+    	bossesDefeatedThisRun
+		},
 
         artifacts: {
             vaultReserve: localStorage.getItem("vaultReserve") === "true",
@@ -2368,6 +2413,8 @@ function loadSavedGame(){
 
         usedQuestions = saveData.usedQuestions || usedQuestions;
         questionHistory = saveData.questionHistory || questionHistory;
+		bossMistakeCountThisRun = Number(saveData.achievementTracking?.bossMistakeCountThisRun || 0);
+        bossesDefeatedThisRun = Number(saveData.achievementTracking?.bossesDefeatedThisRun || 0);
 
         if(saveData.artifacts?.vaultReserve) localStorage.setItem("vaultReserve", "true");
         if(saveData.artifacts?.vaultCompass) localStorage.setItem("vaultCompass", "true");
@@ -3413,19 +3460,32 @@ function endTimedAttemptEarly(){
         ? Math.round((correctAnswers / totalAttempts) * 100)
         : 0;
 
-    localStorage.setItem("mintAshGoldTimedLastRoom", String(room));
-    localStorage.setItem("mintAshGoldTimedLastAccuracy", String(accuracy));
-    localStorage.setItem("mintAshGoldTimedLastAttempts", String(totalAttempts));
-    localStorage.setItem("mintAshGoldTimedLastStreak", String(maxStreak));
+    const reachedRoom = Math.max(timedHighestRoom || 1, room || 1);
 
-    const bestRoom = Number(localStorage.getItem("mintAshGoldTimedBestRoom") || 0);
-    if(room > bestRoom){
-        localStorage.setItem("mintAshGoldTimedBestRoom", String(room));
-    }
+    localStorage.setItem("mintTimedLastRoom", String(reachedRoom));
+    localStorage.setItem("mintTimedLastAccuracy", String(accuracy));
+    localStorage.setItem("mintTimedLastAttempts", String(totalAttempts));
+    localStorage.setItem("mintTimedLastStreak", String(maxStreak));
+
+    recordTimedTrialAchievementStats(accuracy, reachedRoom);
 
     returnToModeSelectFromRun();
 }
 
+function recordTimedTrialAchievementStats(accuracy, reachedRoom){
+    const safeAccuracy = Number.isFinite(Number(accuracy)) ? Number(accuracy) : 0;
+    const safeRoom = Number.isFinite(Number(reachedRoom)) ? Number(reachedRoom) : 0;
+
+    updateRealmMaxStat("mintTimedBestRoom", safeRoom);
+    updateRealmMaxStat("mintTimedBestAccuracy", safeAccuracy);
+
+    updateRealmMaxStat("macroHub_mint_timedBestRoom", safeRoom);
+    updateRealmMaxStat("macroHub_mint_timedBestAccuracy", safeAccuracy);
+
+    if(safeRoom >= 30 && safeAccuracy >= 80){
+        setRealmFlag("macroHub_mint_trial_by_clock_complete");
+    }
+}
 
 function showContinueButtonIfSaved(){
     const btn = document.getElementById("continueRunBtn");
@@ -3442,6 +3502,7 @@ function startNewRun(){
 
 function continueSavedRun(){
     gameMode = "standard";
+    resumedSavedRunThisSession = true;
     startGame(true);
 }
 
@@ -3494,7 +3555,10 @@ function startGame(shouldResume = false) {
    studentEmail = inputEmail;
    username = generatePseudonymFromEmail(studentEmail);
 
-const hasSavedRun = shouldResume ? loadSavedGame() : false;
+    const hasSavedRun = shouldResume ? loadSavedGame() : false;
+    if(!hasSavedRun){
+    resumedSavedRunThisSession = false;
+   }
 
 if(!hasSavedRun){
     bossCheckpoint = 1;
@@ -3541,6 +3605,8 @@ if(!hasSavedRun){
 	rapidGuessHistory = [];
 	rapidGuessWarnings = 0;
 	rapidGuessLocked = false;
+	bossMistakeCountThisRun = 0;
+    bossesDefeatedThisRun = 0
 
     if(modeAllowsSave()){
         localStorage.removeItem("gauntletRoom");
@@ -3625,6 +3691,9 @@ function resetRunStateForNewMode(){
     rapidGuessLocked = false;
     timedHighestRoom = 1;
     timedSetbacks = 0;
+	bossMistakeCountThisRun = 0;
+    bossesDefeatedThisRun = 0;
+    resumedSavedRunThisSession = false;
 
     questionHistory = {
         easy: [], medium: [], hard: [], elite: [], legendary: [], calculation: [],
@@ -3741,6 +3810,8 @@ function endTimedModeRun(){
     localStorage.setItem("mintAshGoldTimedLastAttempts", String(totalAttempts));
     localStorage.setItem("mintAshGoldTimedLastStreak", String(maxStreak));
     localStorage.setItem("mintAshGoldTimedLastSetbacks", String(timedSetbacks));
+
+	recordTimedTrialAchievementStats(accuracy, timedHighestRoom);
 
     sendGameData({
         runID: runID,
@@ -5295,7 +5366,9 @@ recordAdaptiveAttempt(currentQuestion, isCorrect, responseTime);
         },200);
 
 		correctAnswers++;
-        handleStreakVisuals();
+		addRealmStat("macroHub_totalCorrectAnswers", 1);
+		addRealmStat("macroHub_engine_correctTotal", 1);
+		handleStreakVisuals();
        
         // --- STAGED REMEDIATION SUCCESS PATH ---
   if(remediationState.active){
@@ -5406,6 +5479,10 @@ recordAdaptiveAttempt(currentQuestion, isCorrect, responseTime);
          });
            
          bossPool = [];
+			
+		 if(gameMode === "standard"){
+         bossesDefeatedThisRun++;
+         }
            
        // Boss defeated — Mint of Ash and Gold boss artifacts
 if(modeAllowsRealmProgress()){
@@ -5458,6 +5535,9 @@ if(modeAllowsRealmProgress()){
        
     if (isBossRoom) {
         sfxWrong.volume = 0.7;
+		if(gameMode === "standard"){
+ 		bossMistakeCountThisRun++;
+		}
     } else {
         sfxWrong.volume = 0.5;
     }
@@ -5980,6 +6060,11 @@ function handlePracticeModeComplete(){
         ? Math.round((correctAnswers / totalAttempts) * 100)
         : 0;
 
+	if(gameMode === "exam"){
+    setRealmFlag("macroHub_mint_exam_complete");
+    setRealmFlag("mintExamComplete");
+}
+
     sendGameData({
         runID: runID,
         game: "The Mint of Ash and Gold",
@@ -6115,6 +6200,17 @@ function handleVictory() {
     localStorage.setItem(REALM_COMPLETE_KEY, "true");
     localStorage.setItem(REALM_STATUS_KEY, "restored");
     localStorage.setItem(REALM_ROOM_KEY, "30");
+
+	localStorage.setItem(`macroHub_${REALM_MISSION_KEY}_artifactsCollected`, "3");
+
+	if(resumedSavedRunThisSession){
+    setRealmFlag(`macroHub_${REALM_MISSION_KEY}_resume_finish_complete`);
+    setRealmFlag("macroHub_returnAndRebuild_complete");
+	}
+
+	if(bossesDefeatedThisRun >= 3 && bossMistakeCountThisRun === 0){
+    setRealmFlag(`macroHub_${REALM_MISSION_KEY}_perfect_calibration_complete`);
+	}
 
     clearSavedGame();
 
