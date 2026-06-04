@@ -3109,23 +3109,89 @@ function getRemediationQuestion(state){
     const excludeIds = [state.originQuestionId].filter(Boolean);
 
     if(state.stage === "repair"){
-        const repairPool = easyConceptPools[state.skill] || easyConceptPools[state.tag] || [];
-        const repairCandidates = getQuestionsMatchingNeed(repairPool, state.objective, state.tag, excludeIds, state.skill);
+        if(state.skill && microSkillRepairPools[state.skill]){
+            const skillRepairPool = microSkillRepairPools[state.skill] || [];
+            const skillRepairCandidates = getQuestionsMatchingNeed(
+                skillRepairPool,
+                state.objective,
+                state.tag,
+                excludeIds,
+                state.skill
+            );
+
+            if(skillRepairCandidates.length > 0){
+                return weightedPick(skillRepairCandidates, {
+                    mode: "support",
+                    purpose: "repair"
+                });
+            }
+        }
+
+        const repairPool = microSkillRepairPools[state.skill] || [];
+        const repairCandidates = getQuestionsMatchingNeed(
+            repairPool,
+            state.objective,
+            state.tag,
+            excludeIds,
+            state.skill
+        );
+
         if(repairCandidates.length > 0){
-            return weightedPick(repairCandidates, { mode: "support", purpose: "repair" });
+            return weightedPick(repairCandidates, {
+                mode: "support",
+                purpose: "repair"
+            });
         }
     }
 
     if(state.stage === "bridge"){
-        const bridgePool = mediumConceptPools[state.skill] || mediumConceptPools[state.tag] || [];
-        const bridgeCandidates = getQuestionsMatchingNeed(bridgePool, state.objective, state.tag, excludeIds, state.skill);
+        if(state.skill && microSkillBridgePools[state.skill]){
+            const skillBridgePool = microSkillBridgePools[state.skill] || [];
+            const skillBridgeCandidates = getQuestionsMatchingNeed(
+                skillBridgePool,
+                state.objective,
+                state.tag,
+                excludeIds,
+                state.skill
+            );
+
+            if(skillBridgeCandidates.length > 0){
+                return weightedPick(skillBridgeCandidates, {
+                    mode: "support",
+                    purpose: "confirm"
+                });
+            }
+        }
+
+        const bridgePool = microSkillBridgePools[state.skill] || [];
+        const allBridgePool = Object.values(microSkillBridgePools || {})
+            .reduce((all, pool) => all.concat(pool), []);
+
+        const bridgeCandidates = getQuestionsMatchingNeed(
+            allBridgePool,
+            state.objective,
+            state.tag,
+            excludeIds,
+            state.skill
+        );
+
         if(bridgeCandidates.length > 0){
-            return weightedPick(bridgeCandidates, { mode: "support", purpose: "confirm" });
+            return weightedPick(bridgeCandidates, {
+                mode: "support",
+                purpose: "confirm"
+            });
         }
     }
 
     const retestPoolName = getRetestPoolName();
-    return pickRemediationFromBank(retestPoolName, state.objective, state.tag, state.stage === "retest" ? "challenge" : "confirm", state.skill);
+
+    return pickRemediationFromBank(
+        retestPoolName,
+        state.objective,
+        state.tag,
+        state.stage === "retest" ? "challenge" : "confirm",
+        state.skill
+    );
 }
 
 function weightedPick(pool, options = {}){
