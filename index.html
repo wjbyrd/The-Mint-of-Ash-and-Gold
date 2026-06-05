@@ -242,26 +242,29 @@ body::after{
     padding: 18px 20px;
     text-align: center;
 
-    background: radial-gradient(circle at center,
-        rgba(42,74,64,0.34) 0%,
-        rgba(18,24,24,0.92) 52%,
-        rgba(4,5,5,0.98) 100%);
+    background:
+        radial-gradient(circle at center,
+            rgba(52,211,153,0.10) 0%,
+            rgba(245,214,130,0.12) 36%,
+            rgba(24,18,12,0.92) 72%,
+            rgba(3,5,12,0.99) 100%);
 
     backdrop-filter: blur(6px);
     border-radius: 14px;
     box-sizing: border-box;
 
     box-shadow:
-        0 0 24px rgba(214,177,92,0.24),
-        0 0 70px rgba(88,28,24,0.28),
-        inset 0 0 38px rgba(0,0,0,0.72);
+        0 0 22px rgba(52,211,153,0.14),
+        0 0 58px rgba(245,214,130,0.13),
+        0 0 72px rgba(3,5,12,0.72),
+        inset 0 0 42px rgba(0,0,0,0.78);
 
-    border: 1px solid rgba(214,177,92,0.34);
+    border: 1px solid rgba(245,214,130,0.36);
     animation: torchFlicker 6s infinite;
     transition: box-shadow .3s ease, border-color .3s ease;
     position: relative;
 }
-
+	
 /* Boss state styling — triggered during boss fights (DO NOT REMOVE) */
 #gameBox.boss-mode {
     border: 2px solid #d6b15c;
@@ -338,6 +341,7 @@ body::after{
     0 0 28px rgba(0,0,0,0.65);
 }
 
+	
 /* =========================================
    3. TEXT & TYPOGRAPHY SYSTEM — SAFE TO CUSTOMIZE
 ========================================= */
@@ -398,7 +402,8 @@ h2 {
     text-align: left;
     color: #f3ead2;
     box-shadow: -4px 0 12px rgba(127,29,29,0.34);
-    text-shadow: 0 2px 5px rgba(0,0,0,0.8);
+    text-shadow: 
+		0 2px 5px rgba(0,0,0,0.8);
 }
 
 /* Optional hint display calculation or guidance */
@@ -410,7 +415,8 @@ h2 {
     height: 18px;
     text-shadow: 0 0 6px rgba(214,177,92,0.25);
 }
-    
+
+	
 /* Temporary feedback text auto fades out */
 .fade-out-text {
     animation: fadeOut 5s forwards;
@@ -421,6 +427,7 @@ h2 {
         0 2px 5px rgba(0,0,0,0.85);
 }
 
+	
 /* Add styling to Custodian text */
 #message {
     margin-top: 10px;
@@ -460,18 +467,14 @@ button {
     margin: 6px;
     font-size: 16px;
     cursor: pointer;
-
     background: linear-gradient(180deg, #5b3a1f, #1b1711);
     color: #f3ead2;
-
     border: 1px solid rgba(214,177,92,0.42);
     border-radius: 8px;
-
     box-shadow:
        0 0 12px rgba(214,177,92,0.24),
        0 0 24px rgba(88,28,24,0.18),
        inset 0 0 10px rgba(0,0,0,0.62);
-
     transition: all 0.15s ease;
 }
 
@@ -479,12 +482,10 @@ button {
 button:hover {
     background: linear-gradient(180deg, #7a4a25, #2a1b12);
     border-color: rgba(240,199,94,0.7);
-
     box-shadow:
         0 0 18px rgba(240,199,94,0.48),
         0 0 34px rgba(127,29,29,0.28),
         inset 0 0 12px rgba(0,0,0,0.68);
-
     transform: translateY(-2px) scale(1.02);
 }
 
@@ -510,14 +511,11 @@ button:active {
     padding: 15px;
     font-size: 18px;
     margin: 0;
-
     background: linear-gradient(180deg,
         rgba(50,76,58,0.98),
         rgba(12,24,20,0.98));
-
     color: #f3ead2;
     border: 1px solid rgba(214,177,92,0.34);
-
     box-shadow:
         0 0 10px rgba(214,177,92,0.16),
         0 0 18px rgba(65,95,78,0.16),
@@ -529,9 +527,7 @@ button:active {
     background: linear-gradient(180deg,
         rgba(68,105,76,0.98),
         rgba(24,46,34,0.98));
-
     border-color: rgba(240,199,94,0.68);
-
     box-shadow:
         0 0 18px rgba(214,177,92,0.38),
         0 0 34px rgba(65,120,82,0.35),
@@ -543,30 +539,24 @@ button:active {
     position: absolute;
     top: 12px;
     left: 12px;
-
     padding: 6px 12px;
     font-size: 12px;
     letter-spacing: 1px;
     text-transform: uppercase;
-
     color: #f3ead2;
     background: linear-gradient(180deg, #4a3320, #11100d);
-
     border: 1px solid rgba(214,177,92,0.34);
     border-radius: 6px;
     cursor: pointer;
-
     box-shadow:
         0 0 10px rgba(214,177,92,0.22),
         inset 0 0 7px rgba(0,0,0,0.72);
-
     transition: all 0.15s ease;
 }
 
 .fullscreenBtn:hover {
     background: linear-gradient(180deg, #6a4726, #1c1510);
     border-color: rgba(240,199,94,0.62);
-
     box-shadow:
         0 0 16px rgba(214,177,92,0.42),
         inset 0 0 8px rgba(0,0,0,0.72);
@@ -579,34 +569,60 @@ button:active {
         inset 0 0 10px rgba(0,0,0,0.85);
 }
 
+.return-menu-btn{
+    position:absolute; 
+	top:12px; 
+	right:12px; 
+	padding:6px 12px; 
+	font-size:12px;
+    letter-spacing:1px; 
+	text-transform:uppercase; 
+	color:#f3ead2;
+    background:linear-gradient(180deg, #4a3320, #11100d);
+    border:1px solid rgba(214,177,92,0.34); 
+	border-radius:6px; 
+	cursor:pointer;
+    box-shadow:
+		0 0 10px rgba(214,177,92,0.22), 
+		inset 0 0 7px rgba(0,0,0,0.72);
+    transition:all .15s ease;
+}
+	
+.return-menu-btn:hover{
+	color:#f4d58d; 
+	background:linear-gradient(180deg,#6a4726,#1c1510); 
+	border-color:rgba(240,199,94,.62);
+    box-shadow:
+        0 0 16px rgba(56,189,248,0.34),
+        inset 0 0 8px rgba(0,0,0,0.76);
+}
+	
+.return-menu-btn:active {
+    transform: scale(0.95);
+}
+	
 .continue-btn {
     background: linear-gradient(180deg, #8a4f25, #3a1f14);
     color: #f3ead2;
     font-weight: bold;
-
     padding: 14px 40px;
     font-size: 18px;
     border-radius: 8px;
-
     border: 1px solid rgba(240,199,94,0.52);
     cursor: pointer;
-
     box-shadow:
         0 0 16px rgba(214,177,92,0.38),
         0 0 34px rgba(127,29,29,0.28),
         inset 0 0 12px rgba(0,0,0,0.65);
-
     transition: all 0.15s ease;
 }
 
 .continue-btn:hover {
     background: linear-gradient(180deg, #a7632c, #5b2a19);
-
     box-shadow:
         0 0 24px rgba(240,199,94,0.58),
         0 0 42px rgba(127,29,29,0.36),
         inset 0 0 12px rgba(0,0,0,0.65);
-
     transform: scale(1.03);
 }
 
@@ -1832,16 +1848,8 @@ TIP:
 }
  
 /* === Mint upgrade controls from Market Gate blueprint, Mint of Ash and Gold skin === */
-.return-menu-btn{
-    position:absolute; top:12px; right:12px; padding:6px 12px; font-size:12px;
-    letter-spacing:1px; text-transform:uppercase; color:#f3ead2;
-    background:linear-gradient(180deg, #4a3320, #11100d);
-    border:1px solid rgba(214,177,92,0.34); border-radius:6px; cursor:pointer;
-    box-shadow:0 0 10px rgba(214,177,92,0.22), inset 0 0 7px rgba(0,0,0,0.72);
-    transition:all .15s ease;
-}
-.return-menu-btn:hover{color:#f4d58d; background:linear-gradient(180deg,#6a4726,#1c1510); border-color:rgba(240,199,94,.62);}
-.return-menu-btn:active{transform:scale(.95);}
+
+
 .game-modal{position:fixed; inset:0; z-index:500; display:flex; align-items:center; justify-content:center; padding:24px; background:rgba(4,5,5,.72); backdrop-filter:blur(6px);}
 .game-modal-card{width:min(520px,100%); padding:28px; border-radius:18px; background:radial-gradient(circle at top, rgba(65,95,78,.26), rgba(12,18,18,.90) 48%, rgba(4,5,5,.98)); border:1px solid rgba(214,177,92,.42); box-shadow:0 0 34px rgba(0,0,0,.88),0 0 38px rgba(214,177,92,.18),0 0 46px rgba(127,29,29,.12),inset 0 0 30px rgba(0,0,0,.72); text-align:center;}
 .game-modal-card h2{margin:0 0 12px; color:#f4d58d; font-size:30px; letter-spacing:2px; text-transform:uppercase;}
