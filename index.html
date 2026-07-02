@@ -86,7 +86,7 @@ body {
     align-items: center;
     overflow-x: hidden;
     color: #f3ead2;
-    background: url('question_background_image.png');
+    background: url('question_background_image.webp');
     background-size: cover;
     background-position: center;
 }
@@ -967,7 +967,7 @@ button:active {
         rgba(4,5,5,0.22),
         rgba(4,5,5,0.46)
     ),
-    url('start screen image.png');
+    url('start screen image.webp');
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
@@ -994,7 +994,7 @@ button:active {
         rgba(4,5,5,0.64),
         rgba(4,5,5,0.74)
     ),
-    url('hallway1.png');
+    url('hallway1.webp');
   background-size: cover;
   background-position: center;
   display: flex;
@@ -1725,7 +1725,7 @@ Every pixel matters.
   padding:30px;
   background:
     linear-gradient(rgba(4,5,5,.42), rgba(4,5,5,.78)),
-    url('start screen image.png');
+    url('start screen image.webp');
   background-size:cover;
   background-position:center;
 }
@@ -2610,31 +2610,31 @@ Respect structure strictly.
 
     <div class="mode-grid">
       <button class="mode-card" onclick="startSelectedMode('standard')" aria-label="Standard Campaign. Full 30-room run with bosses, artifacts, setbacks, save and resume status, and realm progress.">
-        <img src="mode_standard.png" alt="" aria-hidden="true">
+        <img src="mode_standard.webp" alt="" aria-hidden="true">
         <span class="mode-card-title">Standard Campaign</span>
         <span class="mode-card-text">Full 30-room run with bosses, artifacts, setbacks, and Mint progress.</span>
       </button>
 
       <button class="mode-card" onclick="startSelectedMode('timed')" aria-label="Timed Trial. Ten minute run with visible countdown, normal setbacks, rapid guessing penalties, and results saved separately.">
-        <img src="mode_timed.png" alt="" aria-hidden="true">
+        <img src="mode_timed.webp" alt="" aria-hidden="true">
         <span class="mode-card-title">Timed Trial</span>
         <span class="mode-card-text">Ten minutes. Correct answers advance. Misses push you back.</span>
       </button>
 
       <button class="mode-card" onclick="startSelectedMode('exam')" aria-label="Exam Drill. No bosses, no artifacts, no realm progress. Just adaptive practice.">
-        <img src="mode_exam.png" alt="" aria-hidden="true">
+        <img src="mode_exam.webp" alt="" aria-hidden="true">
         <span class="mode-card-title">Exam Drill</span>
         <span class="mode-card-text">No bosses. No artifacts. No Mint progress. Just adaptive practice.</span>
       </button>
 
       <button class="mode-card" onclick="startSelectedMode('legendary')" aria-label="Legendary Mode. Full 30-room campaign using the hardest available Mint questions.">
-        <img src="mode_legendary.png" alt="" aria-hidden="true">
+        <img src="mode_legendary.webp" alt="" aria-hidden="true">
         <span class="mode-card-title">Legendary Mode</span>
         <span class="mode-card-text">Full campaign. Hardest available questions. Bosses still hit. No mercy.</span>
       </button>
 
       <button class="mode-card" onclick="startSelectedMode('score')" aria-label="Score Attack. Build points through correct answers, streaks, and speed. Misses subtract points and rapid guessing is punished.">
-        <img src="scoreattack.png" alt="" aria-hidden="true">
+        <img src="scoreattack.webp" alt="" aria-hidden="true">
         <span class="mode-card-title">Score Attack</span>
         <span class="mode-card-text">Rack up points with correct answers, streaks, and speed. Misses cost you.</span>
       </button>
@@ -2806,9 +2806,9 @@ const sfxWrong = new Audio('mistake.wav');
       sfxWrong.volume = 0.4;
     
 const hallwayImages = [
-    "hallway1.png",
-    "hallway2.png",
-    "hallway3.png"
+    "hallway1.webp",
+    "hallway2.webp",
+    "hallway3.webp"
 ];
 
 let soundEnabled = true;
@@ -6504,15 +6504,15 @@ function unlockArtifact(key) {
     let streakColor = "#fbbf24";
 
 if (streak === 5) {
-    streakMsg = `<span class="streak"><img src="streakinflation.png" class="streak-icon">INFLATION TAMED</span>`;
+    streakMsg = `<span class="streak"><img src="streakinflation.webp" class="streak-icon">INFLATION TAMED</span>`;
     streakColor = "#d6b15c";
 }
 else if (streak === 10) {
-    streakMsg = `<span class="streak"><img src="streakgrowth.png" class="streak-icon">GROWTH SECURED</span>`;
+    streakMsg = `<span class="streak"><img src="streakgrowth.webp" class="streak-icon">GROWTH SECURED</span>`;
     streakColor = "#c46a3a";
 }
 else if (streak === 20) {
-    streakMsg = `<span class="streak"><img src="streakstabilization.png" class="streak-icon">STABILIZATION ACHIEVED</span>`;
+    streakMsg = `<span class="streak"><img src="streakstabilization.webp" class="streak-icon">STABILIZATION ACHIEVED</span>`;
     streakColor = "#f0c75e";
 }
 
