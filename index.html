@@ -2684,15 +2684,15 @@ or simplify this section.
             <h3>Acquired Artifacts</h3>
             <div class="vaultRow">
                 <div id="vaultReserve" class="artifactSlot">
-                    <img src="reserve.png">
+                    <img src="reserve.webp">
                     <span>The Reserve Key</span>
                 </div>
                 <div id="vaultCompass" class="artifactSlot">
-                    <img src="compass.png">
+                    <img src="compass.webp">
                     <span>The Golden Rule Compass</span>
                 </div>
                 <div id="vaultCrown" class="artifactSlot">
-                    <img src="crown.png">
+                    <img src="crown.webp">
                     <span>The Stabilization Crown</span>
                 </div>
             </div>
@@ -2705,7 +2705,7 @@ or simplify this section.
         <div id="gameShell">
             <div id="wizardBox">
                 <div id="wizardName">The Custodian</div>
-                <img src="custodian.png" id="wizardImage">
+                <img src="custodian.webp" id="wizardImage">
             </div>
 
             <!-- GAME -->
@@ -4374,17 +4374,17 @@ const TIMING = {
      
 const artifacts = {
     reserve:{
-        img:"reserve.png",
+        img:"reserve.webp",
         title:"The Reserve Key",
         text:"The mint yields its first secret. Deposits become loans, loans become money, and the supply of currency answers to reserves, banks, and the hand that turns the central lever."
     },
     compass:{
-        img:"compass.png",
+        img:"compass.webp",
         title:"The Golden Rule Compass",
         text:"The path to wealth is not printed into existence. Savings feed capital, capital deepens production, and the highest sustainable living standard lies where accumulation is guided, not worshiped."
     },
     crown:{
-        img:"crown.png",
+        img:"crown.webp",
         title:"The Stabilization Crown",
         text:"The storm bends, but the long run does not kneel. Demand may surge, supply may fracture, and output may wander, but the economy is drawn back toward its deeper balance."
     }
@@ -5460,9 +5460,9 @@ function updateMazeTrack() {
             box.innerText = "🟨";
         } else {
             // Boss icons for future rooms
-            if (i === 10){box.innerHTML = '<img src="lord.png" class="boss-icon">';box.classList.add("boss10");}
-            else if (i === 20){box.innerHTML = '<img src="keeper.png" class="boss-icon">';box.classList.add("boss20");}
-            else if (i === 30){box.innerHTML = '<img src="sovereign.png" class="boss-icon">';box.classList.add("boss30");}
+            if (i === 10){box.innerHTML = '<img src="lord.webp" class="boss-icon">';box.classList.add("boss10");}
+            else if (i === 20){box.innerHTML = '<img src="keeper.webp" class="boss-icon">';box.classList.add("boss20");}
+            else if (i === 30){box.innerHTML = '<img src="sovereign.webp" class="boss-icon">';box.classList.add("boss30");}
             else box.innerText = "⬛";
         }
         
@@ -5747,15 +5747,15 @@ if (isBoss) {
     let bossClass = "";
 
     if (room === 10) {
-        bossImage = "lord.png";
+        bossImage = "lord.webp";
         bossClass = "lordGlow";
     }
     else if (room === 20) {
-        bossImage = "keeper.png";
+        bossImage = "keeper.webp";
         bossClass = "keeperGlow";
     }
     else {
-        bossImage = "sovereign.png";
+        bossImage = "sovereign.webp";
         bossClass = "sovereignGlow";
     }
 
