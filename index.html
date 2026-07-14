@@ -1,4 +1,4 @@
-<!-- MINT OF ASH AND GOLD EXTERNAL BANK BUILD 20260702_1 -->
+<!-- MINT OF ASH AND GOLD EXTERNAL BANK BUILD 20260714_2 -->
 <!-- =====================================================
 GAUNTLET ENGINE — MASTER TEMPLATE
 
@@ -1836,7 +1836,7 @@ Every pixel matters.
 
 .mode-grid{
   display:grid;
-  grid-template-columns:repeat(4, minmax(0, 1fr));
+  grid-template-columns:repeat(auto-fit, minmax(190px, 1fr));
   gap:18px;
 }
 
@@ -3309,7 +3309,7 @@ function isBossRoomForMode(r){
 }
 
 function getModeDisplayName(){
-    if(gameMode === "timed") return "Timed Trial";
+    if(gameMode === "timed" || gameMode === "timed-complete") return "Timed Trial";
     if(gameMode === "exam") return "Exam Drill";
     if(gameMode === "score") return "Score Attack";
     if(gameMode === "bossRush") return "Boss Rush";
@@ -3353,9 +3353,9 @@ function saveGameState(){
     };
 
     localStorage.setItem(getSaveKey(), JSON.stringify(saveData));
-    localStorage.setItem("gauntletRoom", String(room));
 
     if(modeAllowsRealmProgress()){
+        localStorage.setItem("gauntletRoom", String(room));
 	    localStorage.setItem(REALM_STARTED_KEY, "true");
 	    localStorage.setItem(REALM_STATUS_KEY, "contested");
 	    localStorage.setItem(REALM_ROOM_KEY, String(room));
@@ -3411,25 +3411,13 @@ function loadSavedGame(){
 }
 
 function clearSavedGame(){
+    // Clear only the save record for the current mode.
+    // Campaign completion flags and earned artifacts are managed by startGame()/handleVictory().
     localStorage.removeItem(getSaveKey());
 
-    if(modeAllowsSave()){
-        localStorage.removeItem("gauntletRoom");
-        localStorage.removeItem("vaultReserve");
-        localStorage.removeItem("vaultCompass");
-        localStorage.removeItem("vaultCrown");
-    }
-
     if(modeAllowsRealmProgress()){
-        localStorage.removeItem(REALM_COMPLETE_KEY);
-        localStorage.setItem(REALM_STATUS_KEY, "contested");
-        localStorage.setItem(REALM_ROOM_KEY, "1");
+        localStorage.removeItem("gauntletRoom");
     }
-
-    ["vaultReserve", "vaultCompass", "vaultCrown"].forEach(id => {
-        const slot = document.getElementById(id);
-        if(slot) slot.classList.remove("unlocked");
-    });
 }
 
 function generatePseudonymFromEmail(email) {
@@ -3704,7 +3692,7 @@ function getTypeBucket(tag, type){
 }
 
 function getSkillKey(question){
-    return question?.primarySkill || question?.repairSkill || inferSkill(question) || null;
+    return question?.repairSkill || question?.primarySkill || inferSkill(question) || null;
 }
 
 function getSkillBucket(question){
@@ -4766,20 +4754,6 @@ function endTimedAttemptEarly(){
     returnToModeSelectFromRun();
 }
 
-function recordTimedTrialAchievementStats(accuracy, reachedRoom){
-    const safeAccuracy = Number.isFinite(Number(accuracy)) ? Number(accuracy) : 0;
-    const safeRoom = Number.isFinite(Number(reachedRoom)) ? Number(reachedRoom) : 0;
-
-    updateRealmMaxStat("mintTimedBestRoom", safeRoom);
-    updateRealmMaxStat("mintTimedBestAccuracy", safeAccuracy);
-
-    updateRealmMaxStat("macroHub_mint_timedBestRoom", safeRoom);
-    updateRealmMaxStat("macroHub_mint_timedBestAccuracy", safeAccuracy);
-
-    if(safeRoom >= 30 && safeAccuracy >= 80){
-        setRealmFlag("macroHub_mint_trial_by_clock_complete");
-    }
-}
 
 function showContinueButtonIfSaved(){
     const btn = document.getElementById("continueRunBtn");
@@ -4902,11 +4876,16 @@ if(!hasSavedRun){
 	bossMistakeCountThisRun = 0;
     bossesDefeatedThisRun = 0
 
-    if(modeAllowsSave()){
+    if(modeAllowsRealmProgress()){
         localStorage.removeItem("gauntletRoom");
 	    localStorage.removeItem("vaultReserve");
 	    localStorage.removeItem("vaultCompass");
 	    localStorage.removeItem("vaultCrown");
+
+        ["vaultReserve", "vaultCompass", "vaultCrown"].forEach(id => {
+            const slot = document.getElementById(id);
+            if(slot) slot.classList.remove("unlocked");
+        });
     }
 	if(modeAllowsRealmProgress()){
 	    localStorage.removeItem(REALM_COMPLETE_KEY);
@@ -4936,7 +4915,7 @@ if(!hasSavedRun){
 	document.querySelector(".top-panel").style.display = "flex";
     document.getElementById("gameShell").style.display = "flex";
     document.getElementById("gameBox").style.display = "block";
-    document.getElementById("artifactVault").style.display = "block";
+    document.getElementById("artifactVault").style.display = modeAllowsRealmProgress() ? "block" : "none";
     document.querySelectorAll(".torch").forEach(t => t.style.display = "block");
 
 
@@ -5159,6 +5138,7 @@ function endTimedModeRun(){
     `;
 
     document.getElementById("answers").innerHTML = `
+        <button class="continue-btn" onclick="showMasteryReportScreen()">View Mastery Report</button>
         <button class="continue-btn" onclick="restartTimedMode()">Retry Timed Trial</button>
         <button class="continue-btn" onclick="returnToModeSelectFromRun()">Choose Another Mint Run</button>
     `;
@@ -5388,7 +5368,7 @@ function wizardSpeak(text){
 // Keep that file beside this index.html file in the GitHub Pages root.
 // =============================================
 </script>
-<script src="mint_ash_gold_question_bank.js?v=20260702_1"></script>
+<script src="mint_ash_gold_question_bank.js?v=20260714_2"></script>
 <script>
 if(!window.questionBanks){
     throw new Error("The Mint of Ash and Gold question bank did not load. Check mint_ash_gold_question_bank.js.");
@@ -6318,6 +6298,7 @@ recordAdaptiveAttempt(currentQuestion, isCorrect, responseTime);
             msgElement.innerHTML =
                 `<span class='fade-out-text'>${getRecoveryLine("bridge")}</span>`;
 
+            questionStartTime = Date.now();
             displayQuestion();
             return;
         }
@@ -6343,6 +6324,7 @@ recordAdaptiveAttempt(currentQuestion, isCorrect, responseTime);
             msgElement.innerHTML =
                 `<span class='fade-out-text'>${getRecoveryLine("retest")}</span>`;
 
+            questionStartTime = Date.now();
             displayQuestion();
             return;
         }
@@ -6357,7 +6339,7 @@ recordAdaptiveAttempt(currentQuestion, isCorrect, responseTime);
         `<span class='fade-out-text'>${getRecoveryLine("complete")}</span>`;
 
     room = returnRoom;
-    localStorage.setItem("gauntletRoom", room);
+    if(modeAllowsRealmProgress()) localStorage.setItem("gauntletRoom", String(room));
 
     setTimeout(loadQuestion, TIMING.normal);
     return;
@@ -6408,10 +6390,6 @@ recordAdaptiveAttempt(currentQuestion, isCorrect, responseTime);
          });
            
          bossPool = [];
-			
-		 if(gameMode === "standard"){
-         bossesDefeatedThisRun++;
-         }
            
        // Boss defeated — Mint of Ash and Gold boss artifacts
 if(modeAllowsRealmProgress()){
@@ -6448,7 +6426,7 @@ if(modeAllowsRealmProgress()){
    room++;
    timedHighestRoom = Math.max(timedHighestRoom, Math.min(room, 30));
    saveGameState();
-   localStorage.setItem("gauntletRoom", room);
+   if(modeAllowsRealmProgress()) localStorage.setItem("gauntletRoom", String(room));
 
    if(gameMode === "timed" && timedModeEndTime && Date.now() >= timedModeEndTime){
        endTimedModeRun();
@@ -6521,6 +6499,7 @@ if(remediationState.active){
         msgElement.innerHTML =
             `<span class='fade-out-text'>${getRecoveryLine("miss")}</span>`;
 
+        questionStartTime = Date.now();
         displayQuestion();
         return;
     }
@@ -6555,6 +6534,7 @@ if (gameMode !== "legendary" && !remediationState.active && currentQuestion.tag 
         msgElement.innerHTML =
             `<span class='fade-out-text'>${remediationMessage}</span>`;
 
+        questionStartTime = Date.now();
         displayQuestion();
         return;
     }
@@ -6574,7 +6554,7 @@ room = Math.max(bossCheckpoint, newRoom);
 
 if(gameMode === "timed") timedSetbacks++;
 
-localStorage.setItem("gauntletRoom", room);
+if(modeAllowsRealmProgress()) localStorage.setItem("gauntletRoom", String(room));
 	
 showGameModal({
     title: "Wrong Turn",
@@ -6997,6 +6977,17 @@ if(gameMode === "exam"){
     markExamDrillCompleted();
 }
 
+if(gameMode === "timed"){
+    const reachedRoom = Math.max(timedHighestRoom || 1, 30);
+    localStorage.setItem("mintAshGoldTimedLastRoom", String(reachedRoom));
+    localStorage.setItem("mintAshGoldTimedLastHighestRoom", String(reachedRoom));
+    localStorage.setItem("mintAshGoldTimedLastAccuracy", String(accuracy));
+    localStorage.setItem("mintAshGoldTimedLastAttempts", String(totalAttempts));
+    localStorage.setItem("mintAshGoldTimedLastStreak", String(maxStreak));
+    localStorage.setItem("mintAshGoldTimedLastSetbacks", String(timedSetbacks));
+    recordTimedTrialAchievementStats(accuracy, reachedRoom);
+}
+
     sendGameData({
         runID: runID,
         game: "The Mint of Ash and Gold",
@@ -7158,12 +7149,8 @@ function handleScoreAttackVictory(){
     });
 
     let scoreLine = "Respectable. The Mint noticed.";
-    if(scoreAttackScore >= 9250){
+    if(scoreAttackScore >= 11590){
         scoreLine = "Maximum score. Clean run. No wasted motion. The Mint can stop testing you now.";
-    } else if(scoreAttackScore >= 8000){
-        scoreLine = "Elite scoring run. Fast, accurate, and mean.";
-    } else if(scoreAttackScore < 4000){
-        scoreLine = "You finished, but the scoreboard is not impressed. Run it back.";
     } else if(scoreAttackScore >= 8000){
         scoreLine = "Elite scoring run. Fast, accurate, and mean.";
     } else if(scoreAttackScore < 4000){
