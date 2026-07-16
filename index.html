@@ -2684,31 +2684,31 @@ Respect structure strictly.
 
     <div class="mode-grid">
       <button class="mode-card" onclick="startSelectedMode('standard')" aria-label="Standard Campaign. Full 30-room run with bosses, artifacts, setbacks, save and resume status, and realm progress.">
-        <img src="mode_standard.webp" alt="" aria-hidden="true">
+        <img src="../mode_standard.webp" alt="" aria-hidden="true">
         <span class="mode-card-title">Standard Campaign</span>
         <span class="mode-card-text">Full 30-room run with bosses, artifacts, setbacks, and Mint progress.</span>
       </button>
 
       <button class="mode-card" onclick="startSelectedMode('timed')" aria-label="Timed Trial. Ten minute run with visible countdown, normal setbacks, rapid guessing penalties, and results saved separately.">
-        <img src="mode_timed.webp" alt="" aria-hidden="true">
+        <img src="../mode_timed.webp" alt="" aria-hidden="true">
         <span class="mode-card-title">Timed Trial</span>
         <span class="mode-card-text">Ten minutes. Correct answers advance. Misses push you back.</span>
       </button>
 
       <button class="mode-card" onclick="startSelectedMode('exam')" aria-label="Exam Drill. No bosses, no artifacts, no realm progress. Just adaptive practice.">
-        <img src="mode_exam.webp" alt="" aria-hidden="true">
+        <img src="../mode_exam.webp" alt="" aria-hidden="true">
         <span class="mode-card-title">Exam Drill</span>
         <span class="mode-card-text">No bosses. No artifacts. No Mint progress. Just adaptive practice.</span>
       </button>
 
       <button class="mode-card" onclick="startSelectedMode('legendary')" aria-label="Legendary Mode. Full 30-room campaign using the hardest available Mint questions.">
-        <img src="mode_legendary.webp" alt="" aria-hidden="true">
+        <img src="../mode_legendary.webp" alt="" aria-hidden="true">
         <span class="mode-card-title">Legendary Mode</span>
         <span class="mode-card-text">Full campaign. Hardest available questions. Bosses still hit. No mercy.</span>
       </button>
 
       <button class="mode-card" onclick="startSelectedMode('score')" aria-label="Score Attack. Build points through correct answers, streaks, and speed. Misses subtract points and rapid guessing is punished.">
-        <img src="scoreattack.webp" alt="" aria-hidden="true">
+        <img src="../scoreattack.webp" alt="" aria-hidden="true">
         <span class="mode-card-title">Score Attack</span>
         <span class="mode-card-text">Rack up points with correct answers, streaks, and speed. Misses cost you.</span>
       </button>
@@ -2779,7 +2779,7 @@ or simplify this section.
         <div id="gameShell">
             <div id="wizardBox">
                 <div id="wizardName">The Custodian</div>
-                <img src="custodian.webp" id="wizardImage">
+                <img src="../custodian.webp" id="wizardImage">
             </div>
 
             <!-- GAME -->
@@ -4249,8 +4249,9 @@ function getRemediationQuestion(state){
     const excludeIds = [state.originQuestionId].filter(Boolean);
 
     if(state.stage === "repair"){
-        if(state.skill && microSkillRepairPools[state.skill]){
-            const skillRepairPool = microSkillRepairPools[state.skill] || [];
+        const skillRepairPool = (window.directSkillRepairRoutes || {})[state.skill]
+            || microSkillRepairPools[state.skill] || [];
+        if(state.skill && skillRepairPool.length){
             const skillRepairCandidates = getQuestionsMatchingNeed(
                 skillRepairPool,
                 state.objective,
@@ -4267,7 +4268,8 @@ function getRemediationQuestion(state){
             }
         }
 
-        const repairPool = microSkillRepairPools[state.skill] || [];
+        const repairPool = (window.directSkillRepairRoutes || {})[state.skill]
+            || microSkillRepairPools[state.skill] || [];
         const repairCandidates = getQuestionsMatchingNeed(
             repairPool,
             state.objective,
@@ -4285,8 +4287,9 @@ function getRemediationQuestion(state){
     }
 
     if(state.stage === "bridge"){
-        if(state.skill && microSkillBridgePools[state.skill]){
-            const skillBridgePool = microSkillBridgePools[state.skill] || [];
+        const skillBridgePool = (window.directSkillBridgeRoutes || {})[state.skill]
+            || microSkillBridgePools[state.skill] || [];
+        if(state.skill && skillBridgePool.length){
             const skillBridgeCandidates = getQuestionsMatchingNeed(
                 skillBridgePool,
                 state.objective,
@@ -4303,7 +4306,8 @@ function getRemediationQuestion(state){
             }
         }
 
-        const bridgePool = microSkillBridgePools[state.skill] || [];
+        const bridgePool = (window.directSkillBridgeRoutes || {})[state.skill]
+            || microSkillBridgePools[state.skill] || [];
         const allBridgePool = Object.values(microSkillBridgePools || {})
             .reduce((all, pool) => all.concat(pool), []);
 
@@ -5397,7 +5401,7 @@ function wizardSpeak(text){
 // Keep that file beside this index.html file in the GitHub Pages root.
 // =============================================
 </script>
-<script src="mint_ash_gold_question_bank.js?v=20260714_2"></script>
+<script src="mint_ash_gold_question_bank.js?v=20260716_1"></script>
 <script>
 if(!window.questionBanks){
     throw new Error("The Mint of Ash and Gold question bank did not load. Check mint_ash_gold_question_bank.js.");
@@ -8141,5 +8145,4 @@ function sendGameData(data) {
 </script>
 </body>
 </html>
-
 
