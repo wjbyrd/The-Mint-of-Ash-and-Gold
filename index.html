@@ -1,4 +1,4 @@
-<!-- MINT OF ASH AND GOLD SHARED-ENGINE REPAIR BUILD 20260717_1 --> 
+<!-- MINT OF ASH AND GOLD EXTERNAL BANK BUILD 20260724 --> 
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -207,7 +207,6 @@ body::after{
 }
 
 /* PLACEHOLDER */	
-#emailInput::placeholder,
 #username::placeholder{
     color: rgba(216,199,160,0.52);
     font-style: italic;
@@ -2665,7 +2664,6 @@ Respect structure strictly.
 <div id="startScreen">
   <div class="start-content">
     <h1 class="title">THE MINT OF ASH AND GOLD</h1>
-    <input id="emailInput" type="email" placeholder="Enter your school email" class="name-input">
     <button class="start-btn" onclick="showModeSelect()">ENTER THE MINT</button>
 
     <button id="continueRunBtn"
@@ -2983,44 +2981,6 @@ function setGameControlsVisible(isVisible){
 
 setGameControlsVisible(false);
 
-const initialGameBoxHTML = document.getElementById("gameBox").innerHTML;
-
-function resetGameSurfaceForNewRun(forceRestore = false){
-    closeGameModal();
-    closeGraphLightbox();
-
-    const gameBox = document.getElementById("gameBox");
-    if(!gameBox) return;
-
-    if(forceRestore
-        || gameBox.querySelector("#masteryReportScreen")
-        || !gameBox.querySelector("#question")
-        || !gameBox.querySelector("#answers")){
-        gameBox.innerHTML = initialGameBoxHTML;
-    }
-
-    gameBox.classList.remove("boss-mode", "hit");
-    gameBox.style.removeProperty("--bossColor");
-
-    const shell = document.getElementById("gameShell");
-    if(shell) shell.classList.remove("boss-mode");
-
-    const bossMessage = document.getElementById("bossMessage");
-    if(bossMessage){
-        bossMessage.innerText = "";
-        bossMessage.style.color = "";
-    }
-
-    const artifactDrop = document.getElementById("artifactDrop");
-    if(artifactDrop) artifactDrop.style.display = "none";
-
-    const hallway = document.getElementById("hallwayTransition");
-    if(hallway) hallway.classList.remove("active");
-
-    const hallwayText = document.getElementById("hallwayText");
-    if(hallwayText) hallwayText.innerHTML = "";
-}
-
 function pauseAllGameMusic(){
     [bgMusic, bossMusic, finalBossMusic].filter(Boolean).forEach(audio => {
         audio.pause();
@@ -3097,13 +3057,14 @@ let bossCheckpoint = 1;
 let correctAnswers = 0; 
 let maxStreak = 0; 
 let username = "";
-let studentEmail = "";
 let runID = "";
 let questionStartTime = 0;
 let streak = 0; 
-let startTime; // Will be set in startGame()
-let room = 1;
+let startTime;
+let finalElapsedTimeMs=null;function getElapsedTimeMs(){return Number.isFinite(finalElapsedTimeMs)?finalElapsedTimeMs:(startTime?Date.now()-startTime:0);}function freezeCompletionTime(fallbackMs=0){if(!Number.isFinite(finalElapsedTimeMs))finalElapsedTimeMs=startTime?Date.now()-startTime:fallbackMs;return finalElapsedTimeMs;} // Will be set in startGame()
+let room = localStorage.getItem("mintAshGoldRoom") ? parseInt(localStorage.getItem("mintAshGoldRoom")) : 1;
 let currentQuestion = null;
+let answerSubmissionPending=false;
 let detourActive = false;
 let detourReturnRoom = null;
 let remediationState = {
@@ -3177,7 +3138,6 @@ const MACRO_PERFECT_CALIBRATION_KEY = "macroHub_perfectCalibration_complete";
 const MACRO_RETURN_AND_REBUILD_KEY = "macroHub_returnAndRebuild_complete";
 
 let gameMode = "standard";
-let runSessionId = 0;
 let timedModeDurationMs = 10 * 60 * 1000;
 let timedModeEndTime = null;
 let timedModeTimerInterval = null;
@@ -3357,20 +3317,6 @@ function getModeDisplayName(){
     return "Standard Campaign";
 }
 
-function beginRunSession(){
-    runSessionId += 1;
-    return runSessionId;
-}
-
-function scheduleForCurrentRun(callback, delay){
-    const scheduledSessionId = runSessionId;
-
-    return setTimeout(() => {
-        if(scheduledSessionId !== runSessionId) return;
-        callback();
-    }, delay);
-}
-
 function saveGameState(){
     if(!modeAllowsSave()) return;
 
@@ -3383,8 +3329,7 @@ function saveGameState(){
         maxStreak,
         streak,
         username,
-        studentEmail,
-        runID,
+runID,
         gameMode,
         conceptMemory,
         masteryState,
@@ -3409,7 +3354,8 @@ function saveGameState(){
     localStorage.setItem(getSaveKey(), JSON.stringify(saveData));
 
     if(modeAllowsRealmProgress()){
-        localStorage.setItem(REALM_STARTED_KEY, "true");
+        localStorage.setItem("mintAshGoldRoom", String(room));
+	    localStorage.setItem(REALM_STARTED_KEY, "true");
 	    localStorage.setItem(REALM_STATUS_KEY, "contested");
 	    localStorage.setItem(REALM_ROOM_KEY, String(room));
     }
@@ -3420,20 +3366,12 @@ function saveGameState(){
     }
 }
 
-function loadSavedGame(expectedMode = gameMode){
-    const normalizedMode = expectedMode || "standard";
-    const saveKey = `${SAVE_KEY}_${normalizedMode}`;
-    const rawSave = localStorage.getItem(saveKey);
+function loadSavedGame(){
+    const rawSave = localStorage.getItem(getSaveKey());
     if(!rawSave) return false;
 
     try {
         const saveData = JSON.parse(rawSave);
-        const savedMode = saveData.gameMode || normalizedMode;
-
-        if(savedMode !== normalizedMode){
-            console.warn(`Saved run mode mismatch for ${saveKey}: expected ${normalizedMode}, found ${savedMode}.`);
-            return false;
-        }
 
         room = Number(saveData.room || 1);
         bossHealth = Number(saveData.bossHealth || 3);
@@ -3444,20 +3382,18 @@ function loadSavedGame(expectedMode = gameMode){
         streak = Number(saveData.streak || 0);
 
         username = saveData.username || username || "";
-        studentEmail = saveData.studentEmail || studentEmail || "";
-        runID = saveData.runID || runID || "";
-        gameMode = normalizedMode;
+runID = saveData.runID || runID || "";
+        gameMode = saveData.gameMode || gameMode || "standard";
 
         conceptMemory = saveData.conceptMemory || {};
         masteryState = saveData.masteryState || { byTag: {}, byObjective: {}, bySkill: {}, recent: [] };
-        if(!masteryState.bySkill) masteryState.bySkill = {};
         adaptiveMode = saveData.adaptiveMode || "support";
         tagHistory = saveData.tagHistory || [];
         lastTypes = saveData.lastTypes || [];
 
         usedQuestions = saveData.usedQuestions || usedQuestions;
         questionHistory = saveData.questionHistory || questionHistory;
-        bossMistakeCountThisRun = Number(saveData.achievementTracking?.bossMistakeCountThisRun || 0);
+		bossMistakeCountThisRun = Number(saveData.achievementTracking?.bossMistakeCountThisRun || 0);
         bossesDefeatedThisRun = Number(saveData.achievementTracking?.bossesDefeatedThisRun || 0);
 
         if(saveData.artifacts?.vaultReserve) localStorage.setItem("vaultReserve", "true");
@@ -3467,16 +3403,22 @@ function loadSavedGame(expectedMode = gameMode){
         return true;
     } catch(error){
         console.warn("Saved game could not be loaded:", error);
-        localStorage.removeItem(saveKey);
+        localStorage.removeItem(getSaveKey());
         return false;
     }
 }
 
 function clearSavedGame(){
+    // Clear only the save record for the current mode.
+    // Campaign completion flags and earned artifacts are managed by startGame()/handleVictory().
     localStorage.removeItem(getSaveKey());
+
+    if(modeAllowsRealmProgress()){
+        localStorage.removeItem("mintAshGoldRoom");
+    }
 }
 
-function generatePseudonymFromEmail(email) {
+function generatePseudonymFromSeed(seed) {
     const prefixes = [
         "Nominal", "Real", "Indexed", "Fiscal", "Monetary", "Aggregate",
         "Capital", "Labor", "Inflation", "Output", "Reserve", "Cyclical",
@@ -3490,10 +3432,10 @@ function generatePseudonymFromEmail(email) {
     ];
 
     let hash = 0;
-    const cleanEmail = email.trim().toLowerCase();
+    const cleanSeed = String(seed || "").trim().toLowerCase();
 
-    for (let i = 0; i < cleanEmail.length; i++) {
-        hash = ((hash << 5) - hash) + cleanEmail.charCodeAt(i);
+    for (let i = 0; i < cleanSeed.length; i++) {
+        hash = ((hash << 5) - hash) + cleanSeed.charCodeAt(i);
         hash |= 0;
     }
 
@@ -4091,8 +4033,12 @@ function getWeakestBossObjective(bank){
 
     if(eligibleObjectives.length === 0) return null;
 
-    const scoredObjectives = eligibleObjectives.map(obj => {
+    let weakestObjective = null;
+    let weakestScore = -Infinity;
+
+    eligibleObjectives.forEach(obj => {
         const stats = getObjectiveFamilyStats(obj);
+
         let score = 0.25;
 
         if(stats.accuracy !== null){
@@ -4111,13 +4057,13 @@ function getWeakestBossObjective(bank){
             score += 0.15;
         }
 
-        return { objective: obj, score };
+        if(score > weakestScore){
+            weakestScore = score;
+            weakestObjective = obj;
+        }
     });
 
-    const weakestScore = Math.max(...scoredObjectives.map(item => item.score));
-    const tiedWeakest = scoredObjectives.filter(item => item.score === weakestScore);
-
-    return tiedWeakest[Math.floor(Math.random() * tiedWeakest.length)].objective;
+    return weakestObjective || eligibleObjectives[Math.floor(Math.random() * eligibleObjectives.length)];
 }
 
 function getScaffoldedBossGroups(bank){
@@ -4147,36 +4093,6 @@ function getScaffoldedBossGroups(bank){
     });
 
     return groups;
-}
-
-function pickBossScaffold(bank, poolName, chosenObjective){
-    const objectivePool = chosenObjective
-        ? bank.filter(question => getBossObjectiveKey(question) === chosenObjective)
-        : [];
-    const preferredGroups = objectivePool.length >= 3
-        ? getScaffoldedBossGroups(objectivePool)
-        : [];
-    const allGroups = getScaffoldedBossGroups(bank);
-    const usedIds = new Set(usedQuestions[poolName] || []);
-    const unusedPreferredGroups = preferredGroups.filter(group =>
-        group.every(question => !usedIds.has(question.id))
-    );
-    const unusedGroups = allGroups.filter(group =>
-        group.every(question => !usedIds.has(question.id))
-    );
-    const availableGroups = unusedPreferredGroups.length
-        ? unusedPreferredGroups
-        : unusedGroups.length
-            ? unusedGroups
-            : preferredGroups.length
-                ? preferredGroups
-                : allGroups;
-
-    if(availableGroups.length){
-        return [...availableGroups[Math.floor(Math.random() * availableGroups.length)]];
-    }
-
-    return [...bank].sort((a, b) => a.id - b.id).slice(0, 3);
 }
 
 function getSelectionProfile(){
@@ -4690,47 +4606,9 @@ function getMintBossLine({ isCorrect, tag, type, objective, streak, bossHealth, 
 // Removing this will NOT break the game,
 // but will remove convenience for returning users.
 // =============================================
-const savedEmail = localStorage.getItem("gauntletEmail");
-const emailInput = document.getElementById("emailInput");
-
-if (savedEmail && emailInput) {
-    emailInput.value = savedEmail;
-}
-
-function hasSavedGame(mode = "standard"){
-    return !!localStorage.getItem(`${SAVE_KEY}_${mode}`);
-}
-
-
-
-function validateAndStoreEmailForModeSelect(){
-    let inputEmail = document.getElementById("emailInput").value.trim().toLowerCase();
-
-    if (!inputEmail) {
-        alert("An email is required to enter the Mint.");
-        return false;
-    }
-
-    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-    if (!emailPattern.test(inputEmail)) {
-        alert("Enter a valid email address.");
-        return false;
-    }
-
-    studentEmail = inputEmail;
-    username = generatePseudonymFromEmail(studentEmail);
-
-    localStorage.setItem("gauntletEmail", studentEmail);
-    localStorage.setItem("gauntletUser", username);
-
-    return true;
-}
-
+function hasSavedGame(mode='standard'){return !!localStorage.getItem(SAVE_KEY+'_'+mode);}
 function showModeSelect(){
-    if(!validateAndStoreEmailForModeSelect()) return;
-
-    setGameControlsVisible(false);
+setGameControlsVisible(false);
 
     document.getElementById("startScreen").style.display = "none";
 
@@ -4749,29 +4627,29 @@ function returnToTitleScreen(){
 }
 
 function startSelectedMode(mode){
-    const selectedMode = mode || "standard";
-
-    beginRunSession();
-    stopTimedModeClock();
-    gameMode = selectedMode;
-    localStorage.setItem("mintAshGoldCurrentMode", selectedMode);
+    gameMode = mode || "standard";
+    localStorage.setItem("mintAshGoldCurrentMode", gameMode);
 
     const modeScreen = document.getElementById("modeSelectScreen");
     if(modeScreen) modeScreen.style.display = "none";
 
-    resetGameSurfaceForNewRun(true);
+    if(gameMode === "standard"){
+        startGame(false);
+        return;
+    }
+
     resetRunStateForNewMode();
-    startGame(false, selectedMode);
+    startGame(false);
 }
 
 function confirmReturnToModeMenu(){
     showGameModal({
         title: "Return to Mint Menu?",
-        text: "Saved campaigns will be preserved. Timed Trial, Exam Drill, and Score Attack attempts will end.",
+        text: "Standard Campaign progress will be saved. Timed Trial, Exam Drill, and Score Attack attempts will end.",
         confirmText: "Return",
         cancelText: "Stay",
         onConfirm: function(){
-            if(modeAllowsSave()){
+            if(gameMode === "standard"){
                 saveGameState();
             }
 
@@ -4880,17 +4758,13 @@ function showContinueButtonIfSaved(){
 function startNewRun(){
     gameMode = "standard";
     clearSavedGame();
-    beginRunSession();
-    resetGameSurfaceForNewRun(true);
-    resetRunStateForNewMode();
-    startGame(false, "standard");
+    startGame(false);
 }
 
 function continueSavedRun(){
     gameMode = "standard";
     resumedSavedRunThisSession = true;
-    beginRunSession();
-    startGame(true, "standard");
+    startGame(true);
 }
 
 showContinueButtonIfSaved();
@@ -4924,130 +4798,127 @@ showContinueButtonIfSaved();
 // - progression bugs
 // =============================================
 
-function startGame(shouldResume = false, requestedMode = null) {
-    const launchMode = requestedMode || gameMode || "standard";
-    gameMode = launchMode;
-    resetGameSurfaceForNewRun(!shouldResume);
-
-    let inputEmail = document.getElementById("emailInput").value.trim().toLowerCase();
-
-    if (!inputEmail) {
-        alert("An email is required to enter the Mint.");
-        return;
-    }
-
-    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-    if (!emailPattern.test(inputEmail)) {
-        alert("Enter a valid email address.");
-        return;
-    }
-
-    studentEmail = inputEmail;
-    username = generatePseudonymFromEmail(studentEmail);
-
-    const hasSavedRun = shouldResume ? loadSavedGame(launchMode) : false;
+function startGame(shouldResume=false){
+const hasSavedRun=shouldResume?loadSavedGame():false;
     if(!hasSavedRun){
-        gameMode = launchMode;
-        resumedSavedRunThisSession = false;
-        bossCheckpoint = 1;
-        runID = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-    }
+    resumedSavedRunThisSession = false;
+   }
 
-    localStorage.setItem("gauntletEmail", studentEmail);
-    localStorage.setItem("gauntletUser", username);
-    localStorage.setItem("gauntletRunID", runID);
-
-    if(modeAllowsRealmProgress()){
-        localStorage.setItem(REALM_STARTED_KEY, "true");
-        localStorage.setItem(REALM_STATUS_KEY, "contested");
-        localStorage.setItem(REALM_ROOM_KEY, String(room || 1));
-    }
-
-    sendGameData({
-        runID: runID,
-        game: "The Mint of Ash and Gold",
-        event: hasSavedRun ? "resume" : "start",
+if(!hasSavedRun){bossCheckpoint=1;runID=Date.now().toString()+'-'+Math.random().toString(36).slice(2,8);username=generatePseudonymFromSeed(runID);}if(!username)username=generatePseudonymFromSeed(runID||String(Date.now()));
+localStorage.setItem("gauntletUser", username);
+localStorage.setItem("gauntletRunID", runID);
+if(modeAllowsRealmProgress()){
+    localStorage.setItem(REALM_STARTED_KEY, "true");
+    localStorage.setItem(REALM_STATUS_KEY, "contested");
+    localStorage.setItem(REALM_ROOM_KEY, String(room || 1));
+}
+	
+sendGameData({
+    runID: runID,
+    game: "The Mint of Ash and Gold",
+    event: hasSavedRun ? "resume" : "start",
         user: username,
-        email: studentEmail
     });
 
-    if(!hasSavedRun){
-        room = 1;
-        bossHealth = 3;
-        bossCheckpoint = 1;
-        streak = 0;
-        maxStreak = 0;
-        totalAttempts = 0;
-        correctAnswers = 0;
-        bossPool = [];
-        currentQuestion = null;
-        if(typeof calcBag !== "undefined") calcBag = [];
-        conceptMemory = {};
-        masteryState = { byTag: {}, byObjective: {}, bySkill: {}, recent: [] };
-        tagHistory = [];
-        lastTypes = [];
-        adaptiveMode = "support";
-        resetRemediationState();
-        rapidGuessHistory = [];
-        rapidGuessWarnings = 0;
-        rapidGuessLocked = false;
-        bossMistakeCountThisRun = 0;
-        bossesDefeatedThisRun = 0;
+// Resets progression, scoring, and adaptive tracking
+if(!hasSavedRun){
+	room = 1;
+    bossHealth = 3;
+    streak = 0;
+    maxStreak = 0;
+    totalAttempts = 0;
+    correctAnswers = 0;
+    bossPool = [];
+    calcBag = [];
+    conceptMemory = {};
+    masteryState = { byTag: {},  byObjective: {},  bySkill: {}, recent: [] };
+    tagHistory = [];
+    lastTypes = [];
+    adaptiveMode = "support";
+    resetRemediationState();
+	rapidGuessHistory = [];
+	rapidGuessWarnings = 0;
+	rapidGuessLocked = false;
+	bossMistakeCountThisRun = 0;
+    bossesDefeatedThisRun = 0
 
-        if(modeAllowsRealmProgress()){
-            localStorage.removeItem("vaultReserve");
-            localStorage.removeItem("vaultCompass");
-            localStorage.removeItem("vaultCrown");
-            localStorage.removeItem(REALM_COMPLETE_KEY);
-            localStorage.setItem(REALM_STATUS_KEY, "contested");
-            localStorage.setItem(REALM_ROOM_KEY, "1");
-        }
+    if(modeAllowsRealmProgress()){
+        localStorage.removeItem("mintAshGoldRoom");
+	    localStorage.removeItem("vaultReserve");
+	    localStorage.removeItem("vaultCompass");
+	    localStorage.removeItem("vaultCrown");
 
-        questionHistory = {
-            easy: [], medium: [], hard: [], elite: [], legendary: [], calculation: [],
-            easyBoss: [], mediumBoss: [], finalBoss: [], legendaryBoss: []
-        };
-
-        usedQuestions = {
-            easy: [], medium: [], hard: [], elite: [], legendary: [],
-            easyBoss: [], mediumBoss: [], finalBoss: [], legendaryBoss: []
-        };
+        ["vaultReserve", "vaultCompass", "vaultCrown"].forEach(id => {
+            const slot = document.getElementById(id);
+            if(slot) slot.classList.remove("unlocked");
+        });
     }
+	if(modeAllowsRealmProgress()){
+	    localStorage.removeItem(REALM_COMPLETE_KEY);
+	    localStorage.setItem(REALM_STATUS_KEY, "contested");
+	    localStorage.setItem(REALM_ROOM_KEY, "1");
+	}
+	
+    questionHistory = {
+        easy: [], medium: [], hard: [], elite: [], legendary: [], calculation: [],
+        easyBoss: [], mediumBoss: [], finalBoss: [], legendaryBoss: []
+    };
 
-    setGameControlsVisible(true);
+    usedQuestions = {
+        easy: [], medium: [], hard: [], elite: [], legendary: [],
+        easyBoss: [], mediumBoss: [], finalBoss: [], legendaryBoss: []
+    };
+}
+    
+// =============================================
+// UI INITIALIZATION — SAFE TO CUSTOMIZE
+// =============================================
+// Shows main game elements and restores vault visuals
+	setGameControlsVisible(true);
     document.getElementById("startScreen").style.display = "none";
     const modeScreen = document.getElementById("modeSelectScreen");
     if(modeScreen) modeScreen.style.display = "none";
-    document.querySelector(".top-panel").style.display = "flex";
+	document.querySelector(".top-panel").style.display = "flex";
     document.getElementById("gameShell").style.display = "flex";
     document.getElementById("gameBox").style.display = "block";
     document.getElementById("artifactVault").style.display = modeAllowsRealmProgress() ? "block" : "none";
     document.querySelectorAll(".torch").forEach(t => t.style.display = "block");
 
-    ["vaultReserve", "vaultCompass", "vaultCrown"].forEach(id => {
-        const slot = document.getElementById(id);
-        if(slot) slot.classList.toggle("unlocked", modeAllowsRealmProgress() && localStorage.getItem(id) === "true");
-    });
 
+   // =============================================
+   // VAULT RESTORE SYSTEM — SAFE WITH MATCHING IDS
+   // =============================================
+   // IMPORTANT:
+   // localStorage keys must match the HTML element ids.
+   // =============================================    
+if(localStorage.getItem("vaultReserve")){
+    document.getElementById("vaultReserve").classList.add("unlocked");
+}
+
+if(localStorage.getItem("vaultCompass")){
+    document.getElementById("vaultCompass").classList.add("unlocked");
+}    
+
+if(localStorage.getItem("vaultCrown")){
+    document.getElementById("vaultCrown").classList.add("unlocked");
+}
+  
+// Start game loop: music + timer + first question
     initializeRunForMode(gameMode);
     safePlay(bgMusic);
-    startTime = Date.now();
+    finalElapsedTimeMs=null;startTime=Date.now(); 
     loadQuestion();
 }
 
 function resetRunStateForNewMode(){
-    stopTimedModeClock();
-    timedModeEndTime = null;
     room = 1;
     bossHealth = 3;
     bossCheckpoint = 1;
-    bossPool = [];
-    currentQuestion = null;
     streak = 0;
     maxStreak = 0;
     totalAttempts = 0;
     correctAnswers = 0;
+    bossPool = [];
     if(typeof calcBag !== "undefined") calcBag = [];
     conceptMemory = {};
     masteryState = { byTag: {}, byObjective: {}, bySkill: {}, recent: [] };
@@ -5197,7 +5068,6 @@ function endTimedModeRun(){
         game: "The Mint of Ash and Gold",
         event: "timed_complete",
         user: username,
-        email: studentEmail,
         room: room,
         questionId: 0,
         correct: 1,
@@ -5207,7 +5077,7 @@ function endTimedModeRun(){
         responseTime: 0,
         attempt: totalAttempts,
         streak: streak,
-        elapsedTime: startTime ? (Date.now() - startTime) : 0,
+        elapsedTime: getElapsedTimeMs(),
         adaptiveMode: "timed_complete",
         totalTime: timedModeDurationMs,
         accuracy: accuracy / 100,
@@ -5233,7 +5103,8 @@ function endTimedModeRun(){
     `;
 
     document.getElementById("answers").innerHTML = `
-        <button class="continue-btn" onclick="showMasteryReportScreen()">View Mastery Report</button>
+        <button class="continue-btn" onclick="downloadTelemetryCsv()">Download Game Data</button>
+<button class="continue-btn" onclick="showMasteryReportScreen()">View Mastery Report</button>
         <button class="continue-btn" onclick="restartTimedMode()">Retry Timed Trial</button>
         <button class="continue-btn" onclick="returnToModeSelectFromRun()">Choose Another Mint Run</button>
     `;
@@ -5250,14 +5121,8 @@ function restartTimedMode(){
 }
 
 function returnToModeSelectFromRun(){
-    beginRunSession();
     stopTimedModeClock();
     stopAllMusic();
-    closeGameModal();
-    closeGraphLightbox();
-
-    const hallway = document.getElementById("hallwayTransition");
-    if(hallway) hallway.classList.remove("active");
 
     setGameControlsVisible(false);
 
@@ -5269,6 +5134,7 @@ function returnToModeSelectFromRun(){
     const modeScreen = document.getElementById("modeSelectScreen");
     if(modeScreen) modeScreen.style.display = "flex";
 }
+
 
 
 function getDifficultyForMode(){
@@ -5305,18 +5171,6 @@ function getDifficultyForMode(){
 // Allows pressing Enter to start the game
 // Improves usability, does not affect logic
 // =============================================
-document.getElementById("emailInput").addEventListener("keypress", function(event) {
-    if (event.key === "Enter") {
-        event.preventDefault();
-
-        if(hasSavedGame("standard")){
-            continueSavedRun();
-        } else {
-            showModeSelect();
-        }
-    }
-});
-
 // =============================================
 // AREA NAMING SYSTEM — SAFE TO CUSTOMIZE (WITH RULES)
 // =============================================
@@ -5464,16 +5318,17 @@ function wizardSpeak(text){
   
 // =============================================
 // QUESTION BANKS — EXTERNALIZED
-// The question pools now live in mint_ash_gold_question_bank.js.
+// The question pools now live in mint_ash_gold_question_bank_student.js.
 // Keep that file beside this index.html file in the GitHub Pages root.
 // =============================================
 </script>
-<script src="mint_ash_gold_question_bank.js?v=20260717_1" charset="UTF-8"></script>
+<script src="instructional_resources.js?v=20260724_1" charset="UTF-8"></script>
+<script src="mint_ash_gold_question_bank_student.js?v=20260716_1" charset="UTF-8"></script>
 <script>
 if(!window.questionBanks){
     throw new Error("The Mint of Ash and Gold question bank did not load. Check mint_ash_gold_question_bank.js.");
 }
-if(!window.microSkillRepairPools || !window.microSkillBridgePools){
+if(typeof microSkillRepairPools === "undefined" || typeof microSkillBridgePools === "undefined"){
     throw new Error("The Mint of Ash and Gold repair/bridge pools did not load. Check mint_ash_gold_question_bank.js.");
 }
 console.log("The Mint of Ash and Gold question bank loaded", {
@@ -5514,93 +5369,41 @@ console.log("The Mint of Ash and Gold question bank loaded", {
 //
 // This function ensures fairness in answer order.
 // =============================================   
-function getDisplayedChoiceKey(option){
-    const displayed = String(option ?? "").trim().replace(/\s+/g, " ");
-    const numericMatch = displayed.match(/^([+-]?)(\$?)(\d[\d,]*(?:\.\d+)?)(%?)$/);
-
-    if(numericMatch){
-        const signPrefix = numericMatch[1] || "";
-        const currency = numericMatch[2] || "";
-        const numericValue = Number(`${signPrefix}${numericMatch[3].replace(/,/g, "")}`);
-        const percent = numericMatch[4] || "";
-
-        if(Number.isFinite(numericValue)){
-            return `numeric:${currency}:${numericValue}:${percent}`;
-        }
-    }
-
-    return `text:${displayed}`;
-}
-
-function normalizeQuestionChoices(question){
-    if(!question || !Array.isArray(question.options)) return question;
-
-    const correct = question.options[question.a];
-    const correctKey = getDisplayedChoiceKey(correct);
-    const seen = new Set([correctKey]);
-    const options = [correct];
-
-    question.options.forEach((option, index) => {
-        if(index === question.a) return;
-
-        const key = getDisplayedChoiceKey(option);
-        if(!seen.has(key)){
-            seen.add(key);
-            options.push(option);
-        }
-    });
-
-    if(options.length !== question.options.length){
-        console.warn(`Duplicate displayed choices removed from question ${question.id ?? "unknown"}.`);
-    }
-
-    return { ...question, options, a: 0 };
-}
-
-function hasUniqueDisplayedChoices(question){
-    if(!question || !Array.isArray(question.options)) return false;
-
-    const correctKey = getDisplayedChoiceKey(question.options[question.a]);
-    const displayedKeys = question.options.map(getDisplayedChoiceKey);
-
-    return displayedKeys.length === 4
-        && new Set(displayedKeys).size === displayedKeys.length
-        && displayedKeys.filter(key => key === correctKey).length === 1;
-}
-
 function shuffleOptions(question){
-    question = normalizeQuestionChoices(question);
-
-    let q = {
-        id: question.id,
-        q: question.q,
-        options: [...question.options],
-        a: question.a,
-        feedback: question.feedback,
-        hint: question.hint,
-        tag: question.tag,
-        type: question.type,
-        objective: question.objective,
-        image: question.image,
-        difficulty: question.difficulty,
-        conceptCluster: question.conceptCluster,
-        primarySkill: question.primarySkill,
-        secondarySkills: question.secondarySkills || [],
-        repairSkill: question.repairSkill,
-        commonError: question.commonError
+    const q = {
+        ...question,
+        options: [...(question.options || [])],
+        secondarySkills: [...(question.secondarySkills || [])]
     };
 
-    let correct = q.options[q.a];
-    const correctKey = getDisplayedChoiceKey(correct);
+    const correctText = Number.isInteger(question.a)
+        ? question.options[question.a]
+        : null;
 
     for(let i = q.options.length - 1; i > 0; i--){
-        let j = Math.floor(Math.random() * (i + 1));
+        const j = Math.floor(Math.random() * (i + 1));
         [q.options[i], q.options[j]] = [q.options[j], q.options[i]];
     }
 
-    q.a = q.options.findIndex(option => getDisplayedChoiceKey(option) === correctKey);
+    if(correctText !== null){
+        q.a = q.options.indexOf(correctText);
+    } else {
+        delete q.a;
+    }
 
     return q;
+}
+
+async function isQuestionAnswerCorrect(question, selectedIndex){
+    if(!question || !Array.isArray(question.options)) return false;
+    const selectedOptionText = question.options[selectedIndex] ?? "";
+    if(typeof question.aHash === "string"){
+        if(typeof isPublishedAnswerCorrect !== "function"){
+            throw new Error("Published answer verification helper is missing.");
+        }
+        return isPublishedAnswerCorrect(question, selectedOptionText);
+    }
+    return Number.isInteger(question.a) && selectedIndex === question.a;
 }
 
 // =============================================
@@ -5941,7 +5744,15 @@ if (isBoss) {
         }
 
         if(diff === "legendaryBoss"){
-            bossPool = pickBossScaffold(bank, diff, chosenObjective);
+            const unusedCandidates = candidatePool.filter(q =>
+                q && !(usedQuestions[diff] || []).includes(q.id)
+            );
+
+            const sourcePool = unusedCandidates.length >= 3
+                ? unusedCandidates
+                : candidatePool;
+
+            bossPool = shuffle([...sourcePool]).slice(0, 3);
         } else {
             let groups = getScaffoldedBossGroups(candidatePool);
 
@@ -6065,7 +5876,7 @@ if(gameMode === "legendary"){
 
     wizardSpeak(getWizardLine(currentQuestion.type));
 
-    bossMsg.innerText = isBossRoomForMode(room + 1)
+    bossMsg.innerText = (room === 9 || room === 19 || room === 29)
         ? "⚠️ LEGENDARY BOSS DETECTED IN NEXT ROOM ⚠️"
         : "";
     bossMsg.style.color = "#f97316";
@@ -6139,7 +5950,7 @@ if(currentQuestion.image){
     wizardSpeak(wizardText);
 
     // --- UI ---
-    bossMsg.innerText = isBossRoomForMode(room + 1)
+    bossMsg.innerText = ((gameMode === "standard" || gameMode === "legendary") && (room === 9 || room === 19 || room === 29))
         ? (gameMode === "legendary" ? "⚠️ LEGENDARY BOSS DETECTED IN NEXT ROOM ⚠️" : "⚠️ DANGER: BOSS DETECTED IN NEXT ROOM ⚠️")
         : "";
     bossMsg.style.color = "#ef4444";
@@ -6187,7 +5998,8 @@ if(currentQuestion.image){
 // This is the bridge between UI and mint.
 // =============================================
 
-function displayQuestion() {
+function displayQuestion(){
+answerSubmissionPending=false;
     const optionsElement = document.getElementById("answers");
     optionsElement.innerHTML = "";
 
@@ -6265,21 +6077,16 @@ function checkRapidGuessing(isCorrect, responseTime){
 // Check for artifact names and CHANGE
      
 async function answer(choice) {
-    const answerSessionId = runSessionId;
+if(answerSubmissionPending||rapidGuessLocked)return;answerSubmissionPending=true;setAnswerButtonsDisabled(true);const responseTime=Date.now()-questionStartTime;let isCorrect=false;try{isCorrect=await isQuestionAnswerCorrect(currentQuestion,choice);}catch(error){console.error(error);answerSubmissionPending=false;setAnswerButtonsDisabled(false);showGameModal({title:'Answer Check Failed',text:'The Mint of Ash and Gold could not verify this answer. Reload the game files and try again.',confirmText:'Continue'});return;}totalAttempts++;
 
     // --- GLOBAL MEMORY DECAY ---
     for(let tag in conceptMemory){
     conceptMemory[tag] *= 0.95;
     }
    
-    totalAttempts++;
-   
     const isBossRoom = isBossRoomForMode(room);
     const msgElement = document.getElementById("message");
     const wizard = document.getElementById("wizardImage");
-	const isCorrect = (choice === currentQuestion.a);
-	const responseTime = Date.now() - questionStartTime;
-
 // =============================================
 // RAPID GUESSING LOCKOUT
 // Catches button-mashing before it pollutes mastery,
@@ -6304,11 +6111,11 @@ if(rapidGuess.triggered && !rapidGuessLocked){
     sendGameData({
         runID: runID,
         game: "The Mint of Ash and Gold",
-        event: "rapid_guessing",
+        event: "question",
         user: username || "anonymous",
-        email: studentEmail || "",
         room: room,
         questionId: currentQuestion.id || 0,
+selectedIndex: choice,
         correct: isCorrect ? 1 : 0,
         tag: currentQuestion.tag || "none",
         type: currentQuestion.type || "none",
@@ -6316,7 +6123,7 @@ if(rapidGuess.triggered && !rapidGuessLocked){
         responseTime: responseTime,
         attempt: totalAttempts ?? 0,
         streak: streak ?? 0,
-        elapsedTime: startTime ? (Date.now() - startTime) : 0,
+        elapsedTime: getElapsedTimeMs(),
         adaptiveMode: adaptiveMode,
         score: scoreAttackScore,
         bestScore: scoreAttackBestScore
@@ -6326,7 +6133,7 @@ if(rapidGuess.triggered && !rapidGuessLocked){
     // Same question. No movement. No reward.
     rapidGuessHistory = [];
 
-    scheduleForCurrentRun(() => {
+    setTimeout(() => {
         rapidGuessLocked = false;
         questionStartTime = Date.now();
         displayQuestion();
@@ -6368,9 +6175,9 @@ recordAdaptiveAttempt(currentQuestion, isCorrect, responseTime);
 		game: "The Mint of Ash and Gold",
         event: "question",
         user: username || "anonymous",
-		email: studentEmail || "",
         room: room,
         questionId: currentQuestion.id || 0,
+selectedIndex: choice,
         correct: isCorrect ? 1 : 0,
         tag: currentQuestion.tag || "none",
         type: currentQuestion.type || "none",
@@ -6378,7 +6185,7 @@ recordAdaptiveAttempt(currentQuestion, isCorrect, responseTime);
         responseTime: responseTime,
 	    attempt: totalAttempts ?? 0,
 		streak: streak ?? 0,
-	    elapsedTime: startTime ? (Date.now() - startTime) : 0,
+	    elapsedTime: getElapsedTimeMs(),
         adaptiveMode: adaptiveMode
     });
 
@@ -6388,7 +6195,6 @@ recordAdaptiveAttempt(currentQuestion, isCorrect, responseTime);
     if(modeUsesScoreAttack()){
         setAnswerButtonsDisabled(true);
         await waitForScoreAttackResolve(isCorrect);
-        if(answerSessionId !== runSessionId) return;
     }
 
     // =============================================
@@ -6483,9 +6289,9 @@ recordAdaptiveAttempt(currentQuestion, isCorrect, responseTime);
         `<span class='fade-out-text'>${getRecoveryLine("complete")}</span>`;
 
     room = returnRoom;
-    saveGameState();
+    if(modeAllowsRealmProgress()) localStorage.setItem("mintAshGoldRoom", String(room));
 
-    scheduleForCurrentRun(loadQuestion, TIMING.normal);
+    setTimeout(loadQuestion, TIMING.normal);
     return;
 }
 
@@ -6519,7 +6325,7 @@ recordAdaptiveAttempt(currentQuestion, isCorrect, responseTime);
 		triggerBossShake();
         
         if (bossHealth > 0) {
-           scheduleForCurrentRun(loadQuestion, TIMING.boss);
+           setTimeout(loadQuestion, TIMING.boss);
            return;
         }
          // Boss defeated
@@ -6529,7 +6335,6 @@ recordAdaptiveAttempt(currentQuestion, isCorrect, responseTime);
 			game: "The Mint of Ash and Gold",
             event: "boss_defeated",
             user: username,
-		    email: studentEmail,
             room: room
          });
            
@@ -6570,6 +6375,7 @@ if(modeAllowsRealmProgress()){
    room++;
    timedHighestRoom = Math.max(timedHighestRoom, Math.min(room, 30));
    saveGameState();
+   if(modeAllowsRealmProgress()) localStorage.setItem("mintAshGoldRoom", String(room));
 
    if(gameMode === "timed" && timedModeEndTime && Date.now() >= timedModeEndTime){
        endTimedModeRun();
@@ -6697,7 +6503,7 @@ room = Math.max(bossCheckpoint, newRoom);
 
 if(gameMode === "timed") timedSetbacks++;
 
-saveGameState();
+if(modeAllowsRealmProgress()) localStorage.setItem("mintAshGoldRoom", String(room));
 	
 showGameModal({
     title: "Wrong Turn",
@@ -6826,10 +6632,10 @@ function showHallwayTransition(feedback){
 
     document.getElementById("srAnnouncements").innerText =`Correct. ${feedback}`;
     
-    scheduleForCurrentRun(() => {
-        overlay.classList.remove("active");
-        loadQuestion();
-    }, 3200);
+    setTimeout(()=>{
+    overlay.classList.remove("active");
+    loadQuestion();
+    },3200);
 }
 
 // Displays artifact reward popup
@@ -7047,7 +6853,7 @@ function handleLegendaryVictory(){
         sfxVictory.play();
     }
 
-    const totalTimeMs = Date.now() - startTime;
+    const totalTimeMs=freezeCompletionTime();
     const timeString = formatTime(totalTimeMs);
     const accuracy = totalAttempts > 0 ? Math.round((correctAnswers / totalAttempts) * 100) : 0;
     const verificationCode = generateCode(username + "|LEGENDARY", accuracy, maxStreak, totalTimeMs);
@@ -7057,7 +6863,6 @@ function handleLegendaryVictory(){
         game: "The Mint of Ash and Gold",
         event: "legendary_complete",
         user: username,
-        email: studentEmail,
         room: room,
         questionId: 0,
         correct: 1,
@@ -7100,7 +6905,8 @@ function handleLegendaryVictory(){
     `;
 
     document.getElementById("answers").innerHTML = `
-        <button class="continue-btn" onclick="showMasteryReportScreen()">View Mastery Report</button>
+        <button class="continue-btn" onclick="downloadTelemetryCsv()">Download Game Data</button>
+<button class="continue-btn" onclick="showMasteryReportScreen()">View Mastery Report</button>
         <button class="continue-btn" onclick="returnToModeSelectFromRun()">Choose Another Mint Run</button>
     `;
 
@@ -7136,7 +6942,6 @@ if(gameMode === "timed"){
         game: "The Mint of Ash and Gold",
         event: `${gameMode}_complete`,
         user: username,
-        email: studentEmail,
         room: room,
         questionId: 0,
         correct: 1,
@@ -7146,9 +6951,9 @@ if(gameMode === "timed"){
         responseTime: 0,
         attempt: totalAttempts,
         streak: streak,
-        elapsedTime: startTime ? (Date.now() - startTime) : 0,
+        elapsedTime: getElapsedTimeMs(),
         adaptiveMode: `${gameMode}_complete`,
-        totalTime: startTime ? (Date.now() - startTime) : 0,
+        totalTime: getElapsedTimeMs(),
         accuracy: accuracy / 100,
         maxStreak: maxStreak,
         totalAttempts: totalAttempts
@@ -7169,7 +6974,8 @@ if(gameMode === "timed"){
     `;
 
     document.getElementById("answers").innerHTML = `
-        <button class="continue-btn" onclick="showMasteryReportScreen()">View Mastery Report</button>
+        <button class="continue-btn" onclick="downloadTelemetryCsv()">Download Game Data</button>
+<button class="continue-btn" onclick="showMasteryReportScreen()">View Mastery Report</button>
         <button class="continue-btn" onclick="returnToModeSelectFromRun()">Choose Another Mint Run</button>
     `;
 
@@ -7257,7 +7063,7 @@ function generateCode(name, acc, streak, total){
 function handleScoreAttackVictory(){
     stopTimedModeClock();
 
-    const totalTimeMs = startTime ? (Date.now() - startTime) : 0;
+    const totalTimeMs=freezeCompletionTime();
     const timeString = formatTime(totalTimeMs);
     const accuracy = totalAttempts > 0
         ? Math.round((correctAnswers / totalAttempts) * 100)
@@ -7270,7 +7076,6 @@ function handleScoreAttackVictory(){
         game: "The Mint of Ash and Gold",
         event: "score_complete",
         user: username,
-        email: studentEmail,
         room: room,
         questionId: 0,
         correct: 1,
@@ -7319,7 +7124,8 @@ function handleScoreAttackVictory(){
     `;
 
     document.getElementById("answers").innerHTML = `
-        <button class="continue-btn" onclick="showMasteryReportScreen()">View Mastery Report</button>
+        <button class="continue-btn" onclick="downloadTelemetryCsv()">Download Game Data</button>
+<button class="continue-btn" onclick="showMasteryReportScreen()">View Mastery Report</button>
         <button class="continue-btn" onclick="restartScoreAttackMode()">Retry Score Attack</button>
         <button class="continue-btn" onclick="returnToModeSelectFromRun()">Choose Another Mint Run</button>
     `;
@@ -7362,7 +7168,7 @@ function handleVictory() {
         sfxVictory.play();
     }
     
-    const totalTimeMs = Date.now() - startTime;
+    const totalTimeMs=freezeCompletionTime();
     const timeString = formatTime(totalTimeMs);
     const accuracy = Math.round((correctAnswers / totalAttempts) * 100);
     const verificationCode = generateCode(username, accuracy, maxStreak, totalTimeMs);
@@ -7372,7 +7178,6 @@ sendGameData({
 	game: "The Mint of Ash and Gold",
     event: "complete",
     user: username,
-	email: studentEmail,
     room: room,
     questionId: 0,
     correct: 1,
@@ -7382,7 +7187,7 @@ sendGameData({
     responseTime: 0,
     attempt: totalAttempts,
     streak: streak,
-    elapsedTime: startTime ? (Date.now() - startTime) : 0,
+    elapsedTime: getElapsedTimeMs(),
     adaptiveMode: "complete",
     totalTime: totalTimeMs,
     accuracy: accuracy / 100,
@@ -7476,6 +7281,101 @@ sendGameData({
     }, 600);
 }     
 
+// =============================
+// UTILITIES
+// =============================
+     
+// =============================================
+// ARRAY SHUFFLE UTILITY — SAFE TO USE, DO NOT MODIFY
+// =============================================
+// Fisher-Yates shuffle algorithm.
+//
+// Used to randomize:
+// - question order
+// - calculation generators
+// - any randomized sequences
+//
+// DO NOT MODIFY unless you understand:
+// - uniform randomness
+// - bias in random selection
+//
+// Breaking this = predictable patterns in questions
+// =============================================
+
+function shuffleArray(arr){
+    for(let i=arr.length-1;i>0;i--){ let j=Math.floor(Math.random()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]]; }
+    return arr;
+}     
+
+// =============================================
+// HIGH SCORE TRACKING — OPTIONAL FEATURE
+// =============================================
+// Stores top completion times in browser (localStorage)
+//
+// - Saves name, time, and date
+// - Sorts fastest → slowest
+// - Keeps top 5 results only
+//
+// SAFE TO EDIT:
+// - number of scores kept (slice)
+// - displayed fields (name/date)
+//
+// WARNING:
+// Clearing browser data will erase scores.
+// =============================================
+function updateHighScores(newTimeMs) {
+    let scores = JSON.parse(localStorage.getItem("gauntletHighScores")) || [];
+    scores.push({ name: username, time: newTimeMs, date: new Date().toLocaleDateString() });
+    
+    // Sort by time (lowest/fastest first) and keep top 5
+    scores.sort((a, b) => a.time - b.time);
+    scores = scores.slice(0, 5);
+    
+    localStorage.setItem("gauntletHighScores", JSON.stringify(scores));
+    return scores;
+}
+
+// =============================================
+// TIME FORMATTER — SAFE UTILITY
+// =============================================
+// Converts milliseconds → readable format (Xm Ys)
+//
+// Used for:
+// - victory screen
+// - performance tracking
+//
+// Safe to modify format if desired.
+// =============================================     
+function formatTime(ms) {
+    let mins = Math.floor(ms / 60000);
+    let secs = Math.floor((ms / 1000) % 60);
+    return `${mins}m ${secs}s`;
+}
+
+// =============================================
+// RESULT SHARING — SAFE TO CUSTOMIZE
+// =============================================
+// Copies player performance summary to clipboard.
+//
+// Includes:
+// - name
+// - time
+// - accuracy
+// - streak
+// - verification code
+//
+// SAFE TO EDIT:
+// - text format
+// - labels ("Adventurer", etc.)
+// - button feedback message
+//
+// WARNING:
+// Requires element IDs:
+// - "vCode"
+// - "shareBtn"
+//
+// Removing those will break this function.
+// =============================================     
 // =============================================
 // POST-BATTLE MASTERY REPORT
 // Student-facing diagnostic built from masteryState.
@@ -7728,7 +7628,7 @@ function getMasteryReportModeName(){
 }
 
 function getMasteryReportData(){
-    const totalTimeMs = startTime ? (Date.now() - startTime) : 0;
+    const totalTimeMs=freezeCompletionTime();
     const accuracy = totalAttempts > 0 ? correctAnswers / totalAttempts : 0;
     const tagEntries = getEntriesFromBuckets(masteryState.byTag || {}, "tag");
     const objectiveEntries = getEntriesFromBuckets(masteryState.byObjective || {}, "objective");
@@ -7814,8 +7714,87 @@ function getMasteryReportData(){
         noMajorWeakness,
         behavior,
         verdict,
-        nextSteps
+        nextSteps,
+        recommendations: getRecommendedReviewResources({ weakestObjectives })
     };
+}
+
+
+let latestReviewMaterialsHTML = "";
+
+function getRecommendedReviewResources(report){
+    const catalog = window.INSTRUCTIONAL_RESOURCES;
+    if(!catalog || !Array.isArray(catalog.resources)) return [];
+
+    const resourceById = new Map(catalog.resources.map(resource => [resource.id, resource]));
+    const selectedIds = [];
+    const addIds = ids => (ids || []).forEach(id => {
+        if(resourceById.has(id) && !selectedIds.includes(id)) selectedIds.push(id);
+    });
+    const objectiveIds = (report && report.weakestObjectives || [])
+        .map(entry => String(entry && entry.key || "").match(/LO\d+\.\d+/i))
+        .filter(Boolean)
+        .map(match => match[0].toUpperCase());
+
+    objectiveIds.forEach(objectiveId => {
+        const mapping = catalog.objectiveMappings && catalog.objectiveMappings[objectiveId];
+        if(mapping){
+            addIds(mapping.resourceIds);
+            addIds(mapping.fallbackResourceIds);
+        }
+    });
+
+    if(!selectedIds.length){
+        Object.values(catalog.fallbackResourceIds || {}).forEach(addIds);
+    }
+
+    return selectedIds
+        .map(id => resourceById.get(id))
+        .filter(Boolean)
+        .slice(0, Number(catalog.settings && catalog.settings.maximumRecommendations) || 3);
+}
+
+function renderRecommendedReview(report){
+    const resources = report.recommendations || getRecommendedReviewResources(report);
+    if(!resources.length){
+        return '<div class="mastery-section"><h3>Recommended Review</h3><p class="mastery-empty">No student-facing review materials are mapped for this run yet.</p></div>';
+    }
+
+    return '<div class="mastery-section" id="recommendedReviewSection">'
+        + '<h3>Recommended Review</h3>'
+        + '<p class="mastery-row-meta">These materials are matched to the learning-objective signals above.</p>'
+        + resources.map(resource => '<article class="mastery-row" style="display:block;margin:10px 0;padding:14px;">'
+            + '<div class="mastery-row-main"><span class="mastery-row-name">' + escapeHTML(resource.title) + '</span>'
+            + '<span class="mastery-row-score" style="font-size:.78em">' + escapeHTML(resource.typeLabel || resource.type) + '</span></div>'
+            + '<span class="mastery-row-meta">' + escapeHTML(resource.description) + '</span><br>'
+            + '<a class="continue-btn" style="display:inline-block;margin-top:10px;text-decoration:none;" href="' + escapeHTML(resource.url) + '" target="_blank" rel="noopener noreferrer">' + escapeHTML(resource.actionLabel || 'Open Resource') + '</a>'
+            + '</article>').join('')
+        + '<button class="continue-btn secondary-modal-btn" onclick="showReviewMaterialsScreen()">Review Materials</button>'
+        + '</div>';
+}
+
+function showReviewMaterialsScreen(){
+    const gameBox = document.getElementById("gameBox");
+    if(!gameBox) return;
+    latestReviewMaterialsHTML = gameBox.innerHTML;
+    const report = getMasteryReportData();
+    const resources = report.recommendations || getRecommendedReviewResources(report);
+    const cards = resources.length ? resources.map(resource => '<article class="mastery-section" style="margin:12px 0;">'
+        + '<h3>' + escapeHTML(resource.title) + '</h3>'
+        + '<p class="mastery-row-meta">' + escapeHTML(resource.typeLabel || resource.type) + ' · ' + escapeHTML(resource.description) + '</p>'
+        + '<a class="continue-btn" style="display:inline-block;text-decoration:none;" href="' + escapeHTML(resource.url) + '" target="_blank" rel="noopener noreferrer">' + escapeHTML(resource.actionLabel || 'Open Resource') + '</a>'
+        + '</article>').join('') : '<p class="mastery-empty">No mapped student-facing materials are available for this report.</p>';
+    gameBox.innerHTML = '<div id="reviewMaterialsScreen" class="mastery-report-screen">'
+        + '<h1 class="mastery-report-title">REVIEW MATERIALS</h1>'
+        + '<p class="mastery-report-subtitle">Focused materials selected from this game\'s local course catalog.</p>'
+        + cards
+        + '<div class="mastery-actions"><button class="continue-btn secondary-modal-btn" onclick="restoreMasteryReportFromMaterials()">Back to Mastery Report</button></div>'
+        + '</div>';
+}
+
+function restoreMasteryReportFromMaterials(){
+    const gameBox = document.getElementById("gameBox");
+    if(gameBox && latestReviewMaterialsHTML) gameBox.innerHTML = latestReviewMaterialsHTML;
 }
 
 function showMasteryReportScreen(){
@@ -7909,8 +7888,11 @@ function showMasteryReportScreen(){
                 ${report.nextSteps.map(step => `<div class="mastery-row"><span class="mastery-row-name">${escapeHTML(step)}</span></div>`).join("")}
             </div>
 
+            ${renderRecommendedReview(report)}
+
             <div class="mastery-actions">
-                <button class="continue-btn" onclick="copyMasteryReport()">Copy Report</button>
+                <button class="continue-btn" onclick="downloadTelemetryCsv()">Download Game Data</button>
+<button class="continue-btn" onclick="copyMasteryReport()">Copy Report</button>
                 ${report.noMajorWeakness && gameMode !== "legendary" ? `<button class="continue-btn" onclick="startSelectedMode('legendary')">Enter Legendary Mode</button>` : ""}
                 <button class="continue-btn secondary-modal-btn" onclick="restoreResultsScreen()">Back to Results</button>
                 <button class="continue-btn secondary-modal-btn" onclick="returnToModeSelectFromRun()">Choose Another Mint Run</button>
@@ -7956,7 +7938,10 @@ function copyMasteryReport(){
         ...(report.hasSkillWeakness && report.weakestSkills.length ? report.weakestSkills.map(item => `- ${item.label}: ${formatPercent(item.accuracy)} (${item.correct}/${item.attempts})`) : ["- No major skill weakness detected."]),
         "",
         "Next Moves:",
-        ...report.nextSteps.map(step => `- ${step}`)
+        ...report.nextSteps.map(step => `- ${step}`),
+        "",
+        "Recommended Review:",
+        ...(report.recommendations || getRecommendedReviewResources(report)).map(resource => `- ${resource.title} (${resource.typeLabel || resource.type}): ${resource.url}`)
     ].filter(line => line !== null);
 
     const text = lines.join("\n");
@@ -8084,7 +8069,7 @@ function formatTime(ms) {
 // =============================================
 
 function copyResults() {
-    const totalTimeMs = Date.now() - startTime;
+    const totalTimeMs=freezeCompletionTime();
     const timeString = formatTime(totalTimeMs);
     const code = document.getElementById("vCode").innerText;
     const accuracy = Math.round((correctAnswers / totalAttempts) * 100);
@@ -8112,44 +8097,21 @@ function copyResults() {
     });
 }
 
-function sendGameData(data) {
-  const payload = {
-    timestamp: new Date().toISOString(),
-    runID: data.runID || localStorage.getItem("gauntletRunID") || "",
-    token: data.token || "",
-    version: "MintAshGold-ms-telemetry-v3.5",
-    userAgent: navigator.userAgent || "",
-    game: data.game || "The Mint of Ash and Gold",
-    mode: data.mode || gameMode || "standard",
-    event: data.event || "",
-    user: data.user || username || "anonymous",
-	email: studentEmail || "",  
-    room: Number(data.room ?? 0),
-    questionId: Number(data.questionId ?? data.question ?? 0),
-    correct: Number(data.correct ?? 0),
-    tag: data.tag || "",
-    type: data.type || "",
-    objective: data.objective || "",
-    skill: data.skill || data.primarySkill || "",
-    responseTime: Number(data.responseTime ?? data.responseTimeMs ?? 0),
-    attempt: Number(data.attempt ?? 0),
-    streak: Number(data.streak ?? 0),
-    elapsedTime: Number(data.elapsedTime ?? data.elapsedTimeMs ?? 0),
-    adaptiveMode: data.adaptiveMode || adaptiveMode || "",
-    totalTime: Number(data.totalTime ?? data.totalTimeMs ?? 0),
-    accuracy: Number(data.accuracy ?? 0),
-    maxStreak: Number(data.maxStreak ?? 0),
-    totalAttempts: Number(data.totalAttempts ?? data.attempts ?? 0),
-    verificationCode: data.verificationCode || data.code || ""
-  };
-
-  fetch("https://default8de80de86d8a47cbb5bc7fb9b5bf1c.64.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/239b526e4b9f4c1997a009d53a32267a/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=qQhDuP6P3K8mxdCKyBaMw6S0IPd8rBn8BUAEi_CtlxQ", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify(payload)
-  }).catch(err => console.log("Telemetry failed:", err));
+const TELEMETRY_PREFIX="mintAshGoldTelemetry_";
+const TELEMETRY_VERSION="MintAshGold-local-telemetry-v4-hash-ready";
+const GAME_VERSION="Mint-Ash-Gold-2026.07.24.1";
+const TELEMETRY_LATEST_RUN_KEY="mintAshGoldLatestTelemetryRunID";
+const TELEMETRY_FILENAME_PREFIX="mint-ash-gold";
+const GAME_TITLE="The Mint of Ash and Gold";
+const TELEMETRY_COLUMNS = ["eventID","timestamp","telemetryVersion","gameVersion","runID","game","mode","event","room","questionID","questionVersion","difficulty","selectedIndex","correct","rapidGuessing","tag","type","objective","responseTimeMs","attempt","streak","elapsedTimeMs","adaptiveMode","remediationStage","priorExposureCount","firstExposure","score","bestScore","totalTimeMs","accuracy","maxStreak","totalAttempts","verificationCode"];
+function createTelemetryEventID(){ return Date.now().toString(36) + "-" + Math.random().toString(36).slice(2,10); }
+function readLocalTelemetry(id = runID){ try { const rows = JSON.parse(localStorage.getItem(TELEMETRY_PREFIX + (id || "unassigned")) || "[]"); return Array.isArray(rows) ? rows : []; } catch(error) { console.warn("Local telemetry could not be read:", error); return []; } }
+function escapeCsvValue(value){ const text = String(value ?? ""); return /[",\r\n]/.test(text) ? '"' + text.replace(/"/g, '""') + '"' : text; }
+function downloadTelemetryCsv(){ const id = runID || localStorage.getItem(TELEMETRY_LATEST_RUN_KEY) || ""; const records = readLocalTelemetry(id); const csv = [TELEMETRY_COLUMNS.join(","), ...records.map(record => TELEMETRY_COLUMNS.map(column => escapeCsvValue(record[column])).join(","))].join("\r\n"); const blob = new Blob([csv], {type:"text/csv;charset=utf-8"}); const link = document.createElement("a"); link.href = URL.createObjectURL(blob); link.download = TELEMETRY_FILENAME_PREFIX + "-" + (id || "game-data") + ".csv"; document.body.appendChild(link); link.click(); link.remove(); setTimeout(() => URL.revokeObjectURL(link.href), 0); }
+function sendGameData(data = {}){
+ const eventName=String(data.event||""), response=eventName==="question", completion=/(?:^|_)complete$/.test(eventName), activeRunID=data.runID||runID||localStorage.getItem("gauntletRunID")||"", records=readLocalTelemetry(activeRunID), questionID=Number(data.questionId ?? data.question ?? 0);
+ const record={eventID:createTelemetryEventID(),timestamp:new Date().toISOString(),telemetryVersion:TELEMETRY_VERSION,gameVersion:GAME_VERSION,runID:activeRunID,game:data.game||GAME_TITLE,mode:data.mode||gameMode||"standard",event:eventName,room:Number(data.room??room??0),questionID,questionVersion:Number(data.questionVersion??currentQuestion?.version??1),difficulty:data.difficulty||currentQuestion?.difficulty||"",selectedIndex:response?Number(data.selectedIndex??-1):-1,correct:response?Number(data.correct??0):0,rapidGuessing:response?Number(data.rapidGuessing??0):0,tag:data.tag||"",type:data.type||"",objective:data.objective||"",responseTimeMs:Number(data.responseTime??data.responseTimeMs??0),attempt:Number(data.attempt??totalAttempts??0),streak:Number(data.streak??streak??0),elapsedTimeMs:completion?Number(data.totalTime??data.totalTimeMs??getElapsedTimeMs()):Number(data.elapsedTime??data.elapsedTimeMs??getElapsedTimeMs()),adaptiveMode:data.adaptiveMode||adaptiveMode||"",remediationStage:data.remediationStage||remediationState?.stage||"",priorExposureCount:questionID>0?records.filter(item=>Number(item.questionID)===questionID&&item.event==="question").length:0,firstExposure:questionID>0&&records.every(item=>Number(item.questionID)!==questionID)?1:0,score:Number(data.score??scoreAttackScore??0),bestScore:Number(data.bestScore??scoreAttackBestScore??0),totalTimeMs:Number(data.totalTime??data.totalTimeMs??finalElapsedTimeMs??0),accuracy:Number(data.accuracy??(totalAttempts?correctAnswers/totalAttempts:0)),maxStreak:Number(data.maxStreak??maxStreak??0),totalAttempts:Number(data.totalAttempts??totalAttempts??0),verificationCode:data.verificationCode||data.code||""};
+ records.push(record); localStorage.setItem(TELEMETRY_PREFIX + activeRunID, JSON.stringify(records.slice(-1500))); localStorage.setItem(TELEMETRY_LATEST_RUN_KEY,activeRunID); return record;
 }
    
 // =====================================================
@@ -8168,3 +8130,4 @@ function sendGameData(data) {
 </script>
 </body>
 </html>
+
