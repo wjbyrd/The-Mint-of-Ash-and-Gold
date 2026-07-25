@@ -2683,31 +2683,31 @@ Respect structure strictly.
 
     <div class="mode-grid">
       <button class="mode-card" onclick="startSelectedMode('standard')" aria-label="Standard Campaign. Full 30-room run with bosses, artifacts, setbacks, save and resume status, and realm progress.">
-        <img src="mode_standard.webp" alt="" aria-hidden="true">
+        <img src="../mode_standard.webp" alt="" aria-hidden="true">
         <span class="mode-card-title">Standard Campaign</span>
         <span class="mode-card-text">Full 30-room run with bosses, artifacts, setbacks, and Mint progress.</span>
       </button>
 
       <button class="mode-card" onclick="startSelectedMode('timed')" aria-label="Timed Trial. Ten minute run with visible countdown, normal setbacks, rapid guessing penalties, and results saved separately.">
-        <img src="mode_timed.webp" alt="" aria-hidden="true">
+        <img src="../mode_timed.webp" alt="" aria-hidden="true">
         <span class="mode-card-title">Timed Trial</span>
         <span class="mode-card-text">Ten minutes. Correct answers advance. Misses push you back.</span>
       </button>
 
       <button class="mode-card" onclick="startSelectedMode('exam')" aria-label="Exam Drill. No bosses, no artifacts, no realm progress. Just adaptive practice.">
-        <img src="mode_exam.webp" alt="" aria-hidden="true">
+        <img src="../mode_exam.webp" alt="" aria-hidden="true">
         <span class="mode-card-title">Exam Drill</span>
         <span class="mode-card-text">No bosses. No artifacts. No Mint progress. Just adaptive practice.</span>
       </button>
 
       <button class="mode-card" onclick="startSelectedMode('legendary')" aria-label="Legendary Mode. Full 30-room campaign using the hardest available Mint questions.">
-        <img src="mode_legendary.webp" alt="" aria-hidden="true">
+        <img src="../mode_legendary.webp" alt="" aria-hidden="true">
         <span class="mode-card-title">Legendary Mode</span>
         <span class="mode-card-text">Full campaign. Hardest available questions. Bosses still hit. No mercy.</span>
       </button>
 
       <button class="mode-card" onclick="startSelectedMode('score')" aria-label="Score Attack. Build points through correct answers, streaks, and speed. Misses subtract points and rapid guessing is punished.">
-        <img src="scoreattack.webp" alt="" aria-hidden="true">
+        <img src="../scoreattack.webp" alt="" aria-hidden="true">
         <span class="mode-card-title">Score Attack</span>
         <span class="mode-card-text">Rack up points with correct answers, streaks, and speed. Misses cost you.</span>
       </button>
@@ -2778,7 +2778,7 @@ or simplify this section.
         <div id="gameShell">
             <div id="wizardBox">
                 <div id="wizardName">The Custodian</div>
-                <img src="custodian.webp" id="wizardImage">
+                <img src="../custodian.webp" id="wizardImage">
             </div>
 
             <!-- GAME -->
@@ -2875,9 +2875,9 @@ const finalBossMusic = new Audio('final_boss_music.mp3');
 finalBossMusic.loop = true;
 finalBossMusic.volume = 0.12; // slightly louder, it's the final fight    
     
-const sfxMilestone = new Audio('streak.wav');
-const sfxVictory = new Audio('victory.wav');
-const sfxBossHit = new Audio('boss_hit.wav');
+const sfxMilestone = new Audio();
+const sfxVictory = new Audio();
+const sfxBossHit = new Audio();
       sfxBossHit.volume = 0.5;
 const sfxCorrect = new Audio('ding.wav');
       sfxCorrect.volume = 0.25;
@@ -5043,9 +5043,7 @@ function endTimedModeRun(){
     if(gameMode !== "timed") return;
 
     stopTimedModeClock();
-    // Timed Trial is a fixed-duration mode. Freeze the report at exactly 10:00
-    // instead of letting the clock keep running while the results screen is open.
-    finalElapsedTimeMs = timedModeDurationMs;
+    freezeCompletionTime(timedModeDurationMs);
     gameMode = "timed-complete";
 
     const accuracy = totalAttempts > 0
@@ -5091,6 +5089,7 @@ function endTimedModeRun(){
     document.getElementById("bossMessage").innerText = "";
     document.getElementById("formulaHint").innerText = "";
     document.getElementById("artifactDrop").style.display = "none";
+    closeGraphLightbox();
     document.getElementById("questionImageBox").style.display = "none";
 
     document.getElementById("question").innerHTML = `
@@ -5098,6 +5097,7 @@ function endTimedModeRun(){
         <div class="boss-q">
             You reached as far as Room ${timedHighestRoom}.<br><br>
             Final Room: ${room}<br>
+            Final Time: ${formatTime(getElapsedTimeMs())}<br>
             Accuracy: ${accuracy}%<br>
             Total Attempts: ${totalAttempts}<br>
             Best Streak: ${maxStreak}<br>
