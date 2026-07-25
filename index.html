@@ -5043,6 +5043,9 @@ function endTimedModeRun(){
     if(gameMode !== "timed") return;
 
     stopTimedModeClock();
+    // Timed Trial is a fixed-duration mode. Freeze the report at exactly 10:00
+    // instead of letting the clock keep running while the results screen is open.
+    finalElapsedTimeMs = timedModeDurationMs;
     gameMode = "timed-complete";
 
     const accuracy = totalAttempts > 0
