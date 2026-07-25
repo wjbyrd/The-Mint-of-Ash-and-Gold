@@ -2589,7 +2589,7 @@ body.game-active #soundToggle {
     .mastery-report-screen{ padding:14px; }
     .mastery-report-title{ font-size:24px; }
     .mastery-row-main{ flex-direction:column; gap:4px; }
-    .mastery-row-score{ white-space:normal; }
+    .mastery-row-score{ white-space:nowrap; }
 }
 
 </style>
@@ -2863,6 +2863,16 @@ or simplify this section.
 // Safe to remove entirely if you don't want sound.
 // Does NOT affect game logic.
      
+function createSilentAudio(){
+    return {
+        muted: false,
+        volume: 0,
+        currentTime: 0,
+        pause(){},
+        play(){ return Promise.resolve(); }
+    };
+}
+
 const bgMusic = new Audio('chamber.mp3'); 
 bgMusic.loop = true; 
 bgMusic.volume = 0.05; 
@@ -2875,9 +2885,9 @@ const finalBossMusic = new Audio('final_boss_music.mp3');
 finalBossMusic.loop = true;
 finalBossMusic.volume = 0.12; // slightly louder, it's the final fight    
     
-const sfxMilestone = new Audio();
-const sfxVictory = new Audio();
-const sfxBossHit = new Audio();
+const sfxMilestone = createSilentAudio();
+const sfxVictory = createSilentAudio();
+const sfxBossHit = createSilentAudio();
       sfxBossHit.volume = 0.5;
 const sfxCorrect = new Audio('ding.wav');
       sfxCorrect.volume = 0.25;
@@ -3061,7 +3071,14 @@ let runID = "";
 let questionStartTime = 0;
 let streak = 0; 
 let startTime;
-let finalElapsedTimeMs=null;function getElapsedTimeMs(){return Number.isFinite(finalElapsedTimeMs)?finalElapsedTimeMs:(startTime?Date.now()-startTime:0);}function freezeCompletionTime(fallbackMs=0){if(!Number.isFinite(finalElapsedTimeMs))finalElapsedTimeMs=startTime?Date.now()-startTime:fallbackMs;return finalElapsedTimeMs;} // Will be set in startGame()
+let finalElapsedTimeMs=null;function getElapsedTimeMs(){return Number.isFinite(finalElapsedTimeMs)?finalElapsedTimeMs:(startTime?Date.now()-startTime:0);}function freezeCompletionTime(fixedDurationMs=0){
+    if(!Number.isFinite(finalElapsedTimeMs)){
+        finalElapsedTimeMs = Number.isFinite(fixedDurationMs) && fixedDurationMs > 0
+            ? fixedDurationMs
+            : (startTime ? Date.now() - startTime : 0);
+    }
+    return finalElapsedTimeMs;
+} // Will be set in startGame()
 let room = localStorage.getItem("mintAshGoldRoom") ? parseInt(localStorage.getItem("mintAshGoldRoom")) : 1;
 let currentQuestion = null;
 let answerSubmissionPending=false;
@@ -3094,6 +3111,10 @@ const RAPID_GUESS_CONFIG = {
     minAttempts: 5,         // don't trigger until at least 5 recent attempts exist
     avgTimeMs: 3000,        // average under 3 seconds = suspicious
     maxAccuracy: 0.50,      // under 50% accuracy = not engaged
+    burstWindowSize: 4,     // also inspect the most recent local burst
+    burstFastMs: 2500,      // a response under 2.5 seconds counts as fast
+    burstMinFast: 3,        // three fast answers in the burst is suspicious
+    burstMaxAccuracy: 0.25, // no more than one correct answer in four
     lockMs: 4500            // pause length
 };
 let tagHistory = [];
@@ -3309,6 +3330,7 @@ function isBossRoomForMode(r){
 }
 
 function getModeDisplayName(){
+    if(gameMode === "timed-ended-early") return "Timed Trial Ended Early";
     if(gameMode === "timed" || gameMode === "timed-complete") return "Timed Trial";
     if(gameMode === "exam") return "Exam Drill";
     if(gameMode === "score") return "Score Attack";
@@ -4729,22 +4751,73 @@ function closeGameModal(){
 }
 
 function endTimedAttemptEarly(){
+    if(gameMode !== "timed") return;
+
     stopTimedModeClock();
+    const actualElapsedTimeMs = freezeCompletionTime();
+    gameMode = "timed-ended-early";
+    answerSubmissionPending = true;
 
     const accuracy = totalAttempts > 0
         ? Math.round((correctAnswers / totalAttempts) * 100)
         : 0;
-
     const reachedRoom = Math.max(timedHighestRoom || 1, room || 1);
 
-    localStorage.setItem("mintTimedLastRoom", String(reachedRoom));
-    localStorage.setItem("mintTimedLastAccuracy", String(accuracy));
-    localStorage.setItem("mintTimedLastAttempts", String(totalAttempts));
-    localStorage.setItem("mintTimedLastStreak", String(maxStreak));
+    localStorage.setItem("mintAshGoldTimedLastRoom", String(room || 1));
+    localStorage.setItem("mintAshGoldTimedLastHighestRoom", String(reachedRoom));
+    localStorage.setItem("mintAshGoldTimedLastAccuracy", String(accuracy));
+    localStorage.setItem("mintAshGoldTimedLastAttempts", String(totalAttempts));
+    localStorage.setItem("mintAshGoldTimedLastStreak", String(maxStreak));
+    localStorage.setItem("mintAshGoldTimedLastSetbacks", String(timedSetbacks));
 
-    recordTimedTrialAchievementStats(accuracy, reachedRoom);
+    sendGameData({
+        runID: runID,
+        game: "The Mint of Ash and Gold",
+        event: "timed_ended_early",
+        user: username,
+        room: room,
+        questionId: 0,
+        correct: 0,
+        tag: "",
+        type: "",
+        objective: "",
+        responseTime: 0,
+        attempt: totalAttempts,
+        streak: streak,
+        elapsedTime: actualElapsedTimeMs,
+        adaptiveMode: "timed_ended_early",
+        totalTime: actualElapsedTimeMs,
+        accuracy: accuracy / 100,
+        maxStreak: maxStreak,
+        totalAttempts: totalAttempts
+    });
 
-    returnToModeSelectFromRun();
+    document.getElementById("bossMessage").innerText = "";
+    document.getElementById("formulaHint").innerText = "";
+    document.getElementById("artifactDrop").style.display = "none";
+    closeGraphLightbox();
+    const imageBox = document.getElementById("questionImageBox");
+    imageBox.innerHTML = "";
+    imageBox.style.display = "none";
+
+    document.getElementById("question").innerHTML = `
+        <span class="boss-title">TIMED TRIAL ENDED EARLY</span>
+        <div class="boss-q">
+            Actual Time: ${formatTime(actualElapsedTimeMs)}<br>
+            Room Reached: ${reachedRoom}<br>
+            Accuracy: ${accuracy}%<br>
+            Total Attempts: ${totalAttempts}<br>
+            Best Streak: ${maxStreak}<br>
+            Setbacks Taken: ${timedSetbacks}
+        </div>
+    `;
+
+    document.getElementById("answers").innerHTML = `
+        <button class="continue-btn" onclick="downloadTelemetryCsv()">Download Game Data</button>
+        <button class="continue-btn" onclick="showMasteryReportScreen()">View Mastery Report</button>
+        <button class="continue-btn" onclick="returnToModeSelectFromRun()">Return to Mint Menu</button>
+    `;
+    document.getElementById("message").innerText = "The trial ends early. The Mint preserves the record.";
 }
 
 
@@ -5794,13 +5867,6 @@ if (isBoss) {
     // 2. Select the specific question based on boss health
     currentQuestion = shuffleOptions(bossPool[3 - bossHealth]);
 
-    if (currentQuestion.image) {
-        imageBox.innerHTML = `<img src="${currentQuestion.image}" alt="Question graph" title="Click to enlarge"><div class="graph-zoom-note">Click graph to enlarge</div>`;
-        imageBox.style.display = "block";
-    } else {
-        imageBox.innerHTML = "";
-        imageBox.style.display = "none";
-    }
 
     // 3. Boss Identity UI — Mint of Ash and Gold
     let bTitle = room === 10 ? "THE LORD OF LIQUIDITY"
@@ -5865,13 +5931,6 @@ if(gameMode === "legendary"){
         })
     );
 
-    if(currentQuestion.image){
-        imageBox.innerHTML = `<img src="${currentQuestion.image}" alt="Question graph" title="Click to enlarge"><div class="graph-zoom-note">Click graph to enlarge</div>`;
-        imageBox.style.display = "block";
-    } else {
-        imageBox.innerHTML = "";
-        imageBox.style.display = "none";
-    }
 
     if(!currentQuestion.type){
         currentQuestion.type = "synthesis";
@@ -5936,11 +5995,7 @@ else{
         })
     );
 }
-		
-if(currentQuestion.image){
-    imageBox.innerHTML = `<img src="${currentQuestion.image}" alt="Question graph" title="Click to enlarge"><div class="graph-zoom-note">Click graph to enlarge</div>`;
-    imageBox.style.display = "block";
-}
+
 
 // =============================
 // --- WIZARD LOGIC ---
@@ -6001,8 +6056,33 @@ if(currentQuestion.image){
 // This is the bridge between UI and mint.
 // =============================================
 
+function renderCurrentQuestionImage(question = currentQuestion){
+    const imageBox = document.getElementById("questionImageBox");
+    if(!imageBox) return;
+
+    imageBox.replaceChildren();
+    imageBox.style.display = "none";
+
+    const imageSrc = typeof question?.image === "string" ? question.image.trim() : "";
+    if(!imageSrc) return;
+
+    const img = document.createElement("img");
+    img.src = imageSrc;
+    img.alt = question?.imageAlt || `Question graph for ${question?.objective || question?.tag || "the current item"}`;
+    img.title = "Click to enlarge";
+
+    const note = document.createElement("div");
+    note.className = "graph-zoom-note";
+    note.textContent = "Click graph to enlarge";
+
+    imageBox.append(img, note);
+    imageBox.style.display = "block";
+}
+
 function displayQuestion(){
 answerSubmissionPending=false;
+    questionStartTime = Date.now();
+    renderCurrentQuestionImage(currentQuestion);
     const optionsElement = document.getElementById("answers");
     optionsElement.innerHTML = "";
 
@@ -6042,21 +6122,31 @@ function checkRapidGuessing(isCorrect, responseTime){
         rapidGuessHistory.shift();
     }
 
-    if(rapidGuessHistory.length < RAPID_GUESS_CONFIG.minAttempts){
-        return {
-            triggered: false,
-            avgTime: responseTime,
-            accuracy: isCorrect ? 1 : 0
-        };
-    }
-
     const recent = rapidGuessHistory.slice(-RAPID_GUESS_CONFIG.windowSize);
+    const avgTime = recent.length
+        ? recent.reduce((sum, item) => sum + item.responseTime, 0) / recent.length
+        : responseTime;
+    const accuracy = recent.length
+        ? recent.reduce((sum, item) => sum + item.correct, 0) / recent.length
+        : (isCorrect ? 1 : 0);
 
-    const avgTime = recent.reduce((sum, item) => sum + item.responseTime, 0) / recent.length;
-    const accuracy = recent.reduce((sum, item) => sum + item.correct, 0) / recent.length;
+    const rollingPattern = recent.length >= RAPID_GUESS_CONFIG.minAttempts
+        && avgTime < RAPID_GUESS_CONFIG.avgTimeMs
+        && accuracy < RAPID_GUESS_CONFIG.maxAccuracy;
+
+    const burst = recent.slice(-RAPID_GUESS_CONFIG.burstWindowSize);
+    const burstFastCount = burst.filter(item =>
+        item.responseTime < RAPID_GUESS_CONFIG.burstFastMs
+    ).length;
+    const burstAccuracy = burst.length
+        ? burst.reduce((sum, item) => sum + item.correct, 0) / burst.length
+        : 1;
+    const burstPattern = burst.length === RAPID_GUESS_CONFIG.burstWindowSize
+        && burstFastCount >= RAPID_GUESS_CONFIG.burstMinFast
+        && burstAccuracy <= RAPID_GUESS_CONFIG.burstMaxAccuracy;
 
     return {
-        triggered: avgTime < RAPID_GUESS_CONFIG.avgTimeMs && accuracy < RAPID_GUESS_CONFIG.maxAccuracy,
+        triggered: rollingPattern || burstPattern,
         avgTime,
         accuracy
     };
@@ -7506,7 +7596,7 @@ function getTypeMasteryEntries(){
 
 function sortStrongest(entries){
     return [...entries]
-        .filter(entry => entry.attempts >= 2)
+        .filter(entry => entry.attempts >= 2 && Number(entry.accuracy) >= 0.70)
         .sort((a,b) => (b.accuracy - a.accuracy) || (b.fluency - a.fluency) || (b.attempts - a.attempts));
 }
 
@@ -7623,6 +7713,7 @@ function getRecentBehaviorSignals(){
 
 
 function getMasteryReportModeName(){
+    if(gameMode === "timed-ended-early") return "Timed Trial Ended Early";
     if(gameMode === "timed-complete") return "Timed Trial";
     if(gameMode === "score") return "Score Attack";
     if(gameMode === "legendary") return "Legendary Mode";
