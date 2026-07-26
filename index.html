@@ -3390,6 +3390,25 @@ function modeAllowsSave(){
 function modeAllowsRealmProgress(){
     return gameMode === "standard";
 }
+function isRealmMissionComplete(){
+    return localStorage.getItem(REALM_COMPLETE_KEY) === "true";
+}
+
+function syncRealmAttemptState(){
+    if(!modeAllowsRealmProgress()) return;
+
+    localStorage.setItem(REALM_STARTED_KEY, "true");
+
+    if(isRealmMissionComplete()){
+        localStorage.setItem(REALM_STATUS_KEY, "restored");
+        localStorage.setItem(REALM_ROOM_KEY, "30");
+        return;
+    }
+
+    localStorage.setItem(REALM_STATUS_KEY, "contested");
+    localStorage.setItem(REALM_ROOM_KEY, String(room || 1));
+}
+
 function beginRunSession(){
     runSessionId += 1;
     return runSessionId;
@@ -3461,10 +3480,8 @@ runID,
 
     if(modeAllowsRealmProgress()){
         localStorage.setItem("mintAshGoldRoom", String(room));
-	    localStorage.setItem(REALM_STARTED_KEY, "true");
-	    localStorage.setItem(REALM_STATUS_KEY, "contested");
-	    localStorage.setItem(REALM_ROOM_KEY, String(room));
     }
+    syncRealmAttemptState();
 
     const autosave = document.getElementById("autosave");
     if(autosave){
@@ -4939,11 +4956,7 @@ const hasSavedRun=shouldResume?loadSavedGame():false;
 if(!hasSavedRun){bossCheckpoint=1;runID=Date.now().toString()+'-'+Math.random().toString(36).slice(2,8);username=generatePseudonymFromSeed(runID);}if(!username)username=generatePseudonymFromSeed(runID||String(Date.now()));
 localStorage.setItem("gauntletUser", username);
 localStorage.setItem("gauntletRunID", runID);
-if(modeAllowsRealmProgress()){
-    localStorage.setItem(REALM_STARTED_KEY, "true");
-    localStorage.setItem(REALM_STATUS_KEY, "contested");
-    localStorage.setItem(REALM_ROOM_KEY, String(room || 1));
-}
+syncRealmAttemptState();
 	
 sendGameData({
     runID: runID,
@@ -4976,20 +4989,18 @@ if(!hasSavedRun){
 
     if(modeAllowsRealmProgress()){
         localStorage.removeItem("mintAshGoldRoom");
-	    localStorage.removeItem("vaultReserve");
-	    localStorage.removeItem("vaultCompass");
-	    localStorage.removeItem("vaultCrown");
+        if(!isRealmMissionComplete()){
+	        localStorage.removeItem("vaultReserve");
+	        localStorage.removeItem("vaultCompass");
+	        localStorage.removeItem("vaultCrown");
 
-        ["vaultReserve", "vaultCompass", "vaultCrown"].forEach(id => {
-            const slot = document.getElementById(id);
-            if(slot) slot.classList.remove("unlocked");
-        });
+            ["vaultReserve", "vaultCompass", "vaultCrown"].forEach(id => {
+                const slot = document.getElementById(id);
+                if(slot) slot.classList.remove("unlocked");
+            });
+        }
     }
-	if(modeAllowsRealmProgress()){
-	    localStorage.removeItem(REALM_COMPLETE_KEY);
-	    localStorage.setItem(REALM_STATUS_KEY, "contested");
-	    localStorage.setItem(REALM_ROOM_KEY, "1");
-	}
+	syncRealmAttemptState();
 	
     questionHistory = {
         easy: [], medium: [], hard: [], elite: [], legendary: [], calculation: [],
@@ -5174,6 +5185,7 @@ function updateTimedModeClock(){
 function endTimedModeRun(){
     if(gameMode !== "timed") return;
 
+    beginRunSession();
     stopTimedModeClock();
     freezeCompletionTime(timedModeDurationMs);
     gameMode = "timed-complete";
@@ -6290,7 +6302,7 @@ selectedIndex: choice,
     // Same question. No movement. No reward.
     rapidGuessHistory = [];
 
-    setTimeout(() => {
+    scheduleForCurrentRun(() => {
         rapidGuessLocked = false;
         questionStartTime = Date.now();
         displayQuestion();
