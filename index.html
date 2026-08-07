@@ -5896,9 +5896,13 @@ function loadQuestion() {
         return;
     }
 
-    if((gameMode === "timed" || gameMode === "exam") && room > 30){
+    if(gameMode === "exam" && room > 30){
         handlePracticeModeComplete();
         return;
+    }
+
+    if(gameMode === "timed" && room > 30){
+        room = 30;
     }
 
     questionStartTime = Date.now(); 
